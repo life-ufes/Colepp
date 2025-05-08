@@ -1,15 +1,13 @@
-/* While this template provides a good starting point for using Wear Compose, you can always
- * take a look at https://github.com/android/wear-os-samples/tree/main/ComposeStarter and
- * https://github.com/android/wear-os-samples/tree/main/ComposeAdvanced to find the most up to date
- * changes to the libraries and their usages.
- */
-
 package com.example.transferdata.presentation
 
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,50 +22,92 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
 import com.example.transferdata.R
 import com.example.transferdata.presentation.theme.TransferDataTheme
+import com.google.android.gms.wearable.Wearable
 
 class MainActivity : ComponentActivity() {
+    private val messageClient by lazy { Wearable.getMessageClient(this) }
+    private val capabilityClient by lazy { Wearable.getCapabilityClient(this) }
+
+    private var accelerometerSensor: Sensor? = null
+    private lateinit var sensorManager: SensorManager
+
+    private val mainViewModel by viewModels<MainViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-
         super.onCreate(savedInstanceState)
-
-        setTheme(android.R.style.Theme_DeviceDefault)
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         setContent {
-            WearApp("Android")
+            WearApp(mainViewModel)
+        }
+
+        configureObservers()
+    }
+
+    private fun configureObservers() {
+        mainViewModel.accelerometerState.observe(this) { isActive ->
+            if (isActive) {
+                registerAccelerometerListener()
+            } else {
+                unregisterAccelerometerListener()
+            }
         }
     }
-}
 
-@Composable
-fun WearApp(greetingName: String) {
-    TransferDataTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background),
-            contentAlignment = Alignment.Center
-        ) {
-            TimeText()
-            Greeting(greetingName = greetingName)
+    private fun registerAccelerometerListener() {
+        accelerometerSensor?.let {
+            sensorManager.registerListener(
+                mainViewModel,
+                it,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
         }
     }
-}
 
-@Composable
-fun Greeting(greetingName: String) {
-    Text(
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colors.primary,
-        text = stringResource(R.string.hello_world, greetingName)
-    )
-}
+    private fun unregisterAccelerometerListener() {
+        sensorManager.unregisterListener(mainViewModel, accelerometerSensor)
+    }
 
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
+    private fun checkSensorAvailability() {
+        if (accelerometerSensor == null) {
+            Log.d(TAG, "Accelerometer sensor not available")
+        } else {
+            capabilityClient.addLocalCapability(ACCELEROMETER_CAPABILITY)
+                .addOnFailureListener { exception ->
+                    exception.printStackTrace()
+                }
+                .addOnSuccessListener {
+                    Log.d(TAG, "Local capability $ACCELEROMETER_CAPABILITY added successfully")
+                    Log.d(TAG, "Accelerometer sensor available")
+                }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        messageClient.addListener(mainViewModel)
+        checkSensorAvailability()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        messageClient.removeListener(mainViewModel)
+        unregisterAccelerometerListener()
+
+        capabilityClient.removeLocalCapability(ACCELEROMETER_CAPABILITY)
+            .addOnFailureListener { exception ->
+                exception.printStackTrace()
+            }
+            .addOnSuccessListener {
+                Log.d(TAG, "Local capability $ACCELEROMETER_CAPABILITY removed successfully")
+            }
+    }
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 }
