@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -50,10 +51,16 @@ android {
 
 dependencies {
     implementation(libs.play.services.wearable)
+
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material)
+    implementation(libs.compose.material3)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.wear.tooling.preview)
     implementation(libs.androidx.activity.compose)
@@ -63,9 +70,17 @@ dependencies {
     implementation(libs.horologist.compose.tools)
     implementation(libs.horologist.tiles)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
+
+    implementation(libs.horologist.compose.layout)
+    implementation(libs.horologist.compose.material)
+
+    implementation(libs.compose.ui.preview)
+    implementation(libs.wear.compose.ui.tooling)
+
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    wearApp(project(":wear"))
+
+    implementation(project(":commons"))
 }

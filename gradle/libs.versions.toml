@@ -1,6 +1,6 @@
 [versions]
 agp = "8.6.0"
-kotlin = "1.9.0"
+kotlin = "2.1.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -21,6 +21,18 @@ tilesMaterial = "1.1.0"
 horologistComposeTools = "0.4.8"
 horologistTiles = "0.4.8"
 watchfaceComplicationsDataSourceKtx = "1.1.1"
+compose-compiler = "1.5.15"
+polarsdk = "5.5.0"
+rxjava = "3.1.6"
+rxandroid = "3.0.2"
+composeVersion = "1.7.4"
+material3Version = "1.0.1"
+hilt = "2.51.1"
+systemUiVersion = "0.28.0"
+org-jetbrains-kotlinx = "1.8.1"
+horologist = "0.6.23"
+compose-ui-tooling = "1.4.1"
+jetbrainsKotlinJvm = "1.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -48,8 +60,28 @@ androidx-tiles-material = { group = "androidx.wear.tiles", name = "tiles-materia
 horologist-compose-tools = { group = "com.google.android.horologist", name = "horologist-compose-tools", version.ref = "horologistComposeTools" }
 horologist-tiles = { group = "com.google.android.horologist", name = "horologist-tiles", version.ref = "horologistTiles" }
 androidx-watchface-complications-data-source-ktx = { group = "androidx.wear.watchface", name = "watchface-complications-data-source-ktx", version.ref = "watchfaceComplicationsDataSourceKtx" }
+polar-ble-sdk = { group = "com.github.polarofficial", name = "polar-ble-sdk", version.ref = "polarsdk" }
+rxjava = { group = "io.reactivex.rxjava3", name = "rxjava", version.ref = "rxjava" }
+rxandroid = { group = "io.reactivex.rxjava3", name = "rxandroid", version.ref = "rxandroid" }
+compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "composeVersion" }
+compose-ui-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "composeVersion" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "composeVersion" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
+hilt-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+system-ui = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "systemUiVersion" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "org-jetbrains-kotlinx" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "org-jetbrains-kotlinx" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "org-jetbrains-kotlinx" }
+horologist-compose-layout = { module = "com.google.android.horologist:horologist-compose-layout", version.ref = "horologist" }
+horologist-compose-material = { module = "com.google.android.horologist:horologist-compose-material", version.ref = "horologist" }
+wear-compose-ui-tooling = { module = "androidx.wear.compose:compose-ui-tooling", version.ref = "compose-ui-tooling" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 

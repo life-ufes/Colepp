@@ -16,9 +16,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven("https://jitpack.io")
     }
 }
 
 rootProject.name = "Transfer data"
 include(":mobile")
 include(":wear")
+include(":commons")
