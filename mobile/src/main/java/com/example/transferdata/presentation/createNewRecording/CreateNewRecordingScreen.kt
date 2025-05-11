@@ -19,11 +19,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.transferdata.R
 import com.example.transferdata.bluetoothHandler.BluetoothViewModel
 import com.example.transferdata.polarHandler.PolarBleApiSingleton
-import com.example.transferdata.presentation.common.components.CardOfWearable
-import com.example.transferdata.presentation.common.components.DefaultButton
-import com.example.transferdata.presentation.common.components.LabeledTextField
-import com.example.transferdata.presentation.common.components.Toolbar
-import com.example.transferdata.presentation.common.utils.Size
+import com.example.transferdata.common.composeUI.CardOfWearable
+import com.example.transferdata.common.composeUI.DefaultButton
+import com.example.transferdata.common.composeUI.LabeledTextField
+import com.example.transferdata.common.composeUI.Toolbar
+import com.example.transferdata.common.utils.Size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

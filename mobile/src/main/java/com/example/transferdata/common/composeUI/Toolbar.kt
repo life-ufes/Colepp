@@ -1,4 +1,4 @@
-package com.example.transferdata.presentation.common.components
+package com.example.transferdata.common.composeUI
 
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api

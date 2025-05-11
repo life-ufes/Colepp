@@ -1,4 +1,4 @@
-package com.example.transferdata.presentation.common.components
+package com.example.transferdata.common.composeUI
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.transferdata.R
-import com.example.transferdata.presentation.common.utils.Size
+import com.example.transferdata.common.utils.Size
 
 @Composable
 fun CardOfWearable(

@@ -1,4 +1,4 @@
-package com.example.transferdata.presentation.common.components
+package com.example.transferdata.common.composeUI
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +20,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.transferdata.R
-import com.example.transferdata.presentation.common.utils.ButtonStyle
-import com.example.transferdata.presentation.common.utils.Size.size03
-import com.example.transferdata.presentation.common.utils.Size.size05
+import com.example.transferdata.common.utils.Size.size03
+import com.example.transferdata.common.utils.Size.size05
 
 @Composable
 fun DefaultButton(

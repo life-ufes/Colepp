@@ -1,4 +1,4 @@
-package com.example.transferdata.presentation.common.utils
+package com.example.transferdata.common.utils
 
 import androidx.compose.ui.unit.dp
 

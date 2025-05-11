@@ -1,4 +1,4 @@
-package com.example.transferdata.presentation.common.utils
+package com.example.transferdata.common.composeUI
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.example.transferdata.R
+import com.example.transferdata.common.utils.Size
 
 data class ButtonStyle(
     val icon: Painter? = null,
