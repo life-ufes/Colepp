@@ -3,13 +3,15 @@ package com.example.transferdata.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.example.transferdata.navigation.MainNavGraphRoutes.CREATE_NEW_RECORDING_GRAPH
+import com.example.transferdata.navigation.MainNavGraphRoutes.HOME_GRAPH
+import com.example.transferdata.navigation.MainNavGraphRoutes.HOME_SCREEN
 
 object MainNavGraphRoutes {
-    const val CREATE_NEW_RECORDING_GRAPH = "create_new_recording_graph"
-    const val CREATE_NEW_RECORDING = "create_new_recording"
-    const val RECORDING = "recording"
+    const val HOME_GRAPH = "home_graph"
+    const val HOME_SCREEN = "home_screen"
 }
 
 @Composable
@@ -22,14 +24,20 @@ internal fun MainNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = CREATE_NEW_RECORDING_GRAPH
+        startDestination = HOME_GRAPH
     ) {
         addNewRecordingGraph(
             navController = navController,
             onBackPressed = onBackPressed,
             onClosePressed = onClosePressed,
-            sendCount = sendCount,
-            apiAvailable = apiAvailable
         )
+        navigation(
+            route = HOME_GRAPH,
+            startDestination = HOME_SCREEN
+        ) {
+            composable(HOME_SCREEN) {
+
+            }
+        }
     }
 }

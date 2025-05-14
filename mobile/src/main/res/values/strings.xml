@@ -9,4 +9,9 @@
     <!--  Recording Screen  -->
     <string name="new_recording">Iniciar captura</string>
     <string name="start_recording">Iniciar</string>
+
+    <!--  Home Screen  -->
+    <string name="home_toolbar_title">Minhas capturas</string>
+    <string name="home_bottom_bar_home">Home</string>
+    <string name="home_bottom_bar_guidance">Instruções</string>
 </resources>
