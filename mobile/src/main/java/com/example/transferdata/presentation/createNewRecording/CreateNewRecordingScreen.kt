@@ -8,45 +8,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.transferdata.MainViewModel
 import com.example.transferdata.R
-import com.example.transferdata.bluetoothHandler.BluetoothViewModel
-import com.example.transferdata.polarHandler.PolarBleApiSingleton
-import com.example.transferdata.common.composeUI.CardOfWearable
 import com.example.transferdata.common.composeUI.DefaultButton
 import com.example.transferdata.common.composeUI.LabeledTextField
 import com.example.transferdata.common.composeUI.Toolbar
 import com.example.transferdata.common.utils.Size
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
 fun CreateNewRecording(
     viewModel: CreateNewRecordingViewModel = hiltViewModel(),
-    bluetoothViewModel: BluetoothViewModel = hiltViewModel(),
+    mainViewModel: MainViewModel,
     createdNewRecording: () -> Unit,
-    onBackPressed: () -> Unit,
-    apiAvailable: Boolean,
+    onBackPressed: () -> Unit
 ) {
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            viewModel.setPolarApi(
-                PolarBleApiSingleton.getInstance(context)
-            )
-        }
-    }
-
     val nameValue = viewModel.nameValue.collectAsState()
     val descriptionValue = viewModel.descriptionValue.collectAsState()
+    val buttonEnabled = viewModel.enableButton.collectAsState()
 
     Surface(
         modifier = Modifier
@@ -69,7 +53,7 @@ fun CreateNewRecording(
                 descriptionValue = descriptionValue.value,
                 onNameValueChange = viewModel::onNameValueChange,
                 createdNewRecording = createdNewRecording,
-                apiAvailable = apiAvailable,
+                buttonEnabled = buttonEnabled.value,
             )
         }
     }
@@ -80,10 +64,10 @@ private fun ScreenContent(
     modifier: Modifier = Modifier,
     nameValue: String,
     descriptionValue: String,
+    buttonEnabled: Boolean,
     onNameValueChange: (String) -> Unit,
     onDescriptionValueChange: (String) -> Unit,
-    createdNewRecording: () -> Unit,
-    apiAvailable: Boolean,
+    createdNewRecording: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -101,23 +85,12 @@ private fun ScreenContent(
             label = stringResource(R.string.description_label),
             onValueChange = onDescriptionValueChange,
         )
-        CardOfWearable(
-            title = "Polar H10",
-            subtitle = "Conectado",
-            onClick = {},
-            modifier = Modifier.fillMaxWidth(),
-        )
-        CardOfWearable(
-            title = "API available",
-            subtitle = "$apiAvailable",
-            onClick = {},
-            modifier = Modifier.fillMaxWidth(),
-        )
         Spacer(modifier = Modifier.weight(1f))
         DefaultButton(
-            text = "Iniciar",
+            text = stringResource(R.string.btn_create_new_recording),
             onClick = createdNewRecording,
             modifier = Modifier.fillMaxWidth(),
+            enabled = buttonEnabled
         )
     }
 }
@@ -128,9 +101,9 @@ private fun ScreenContentPreview() {
     ScreenContent(
         nameValue = "Polar H10",
         descriptionValue = "Conectado",
+        buttonEnabled = true,
         onNameValueChange = {},
         onDescriptionValueChange = {},
-        createdNewRecording = {},
-        apiAvailable = true,
+        createdNewRecording = {}
     )
 }
