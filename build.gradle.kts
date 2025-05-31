@@ -6,3 +6,16 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     alias(libs.plugins.compose.compiler) apply false
 }
+
+ buildscript {
+     val kotlin_version by extra("1.9.21")
+
+     repositories {
+         google()
+         mavenCentral()
+     }
+
+     dependencies {
+         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+     }
+ }
