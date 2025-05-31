@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import com.example.transferdata.MainViewModel
 import com.example.transferdata.R
 import com.example.transferdata.common.composeUI.Toolbar
 import com.example.transferdata.common.utils.Size
@@ -30,6 +31,7 @@ import com.example.transferdata.common.utils.Size
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = HomeViewModel(),
+    mainViewModel: MainViewModel,
     onRecordingPressed: () -> Unit,
     createNewRecording: () -> Unit,
 ) {
@@ -138,8 +140,7 @@ private fun BottomAppBarPreview() {
 @Preview
 @Composable
 private fun HomeContentPreview() {
-    HomeScreen(
-        onRecordingPressed = {},
-        createNewRecording = {}
+    HomeContent(
+        modifier = Modifier.fillMaxSize()
     )
 }
