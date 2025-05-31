@@ -74,7 +74,7 @@ class MainViewModel(
 
     private fun sendAccelerometerData(data: AccelerometerData) {
         viewModelScope.launch(Dispatchers.IO) {
-            val dataBytes = "${data.x},${data.y},${data.z},${data.timestamp}".toByteArray()
+            val dataBytes = data.toByteArray()
             nodeClient.connectedNodes
                 .addOnSuccessListener { nodes ->
                     for (node in nodes) {
