@@ -19,7 +19,7 @@ class DataLayerListenerService : WearableListenerService() {
             START_ACTIVITY_PATH -> {
                 startActivity(
                     Intent(this, MainActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 )
             }
         }
