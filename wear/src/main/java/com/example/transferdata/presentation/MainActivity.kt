@@ -5,26 +5,11 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.TimeText
-import androidx.wear.tooling.preview.devices.WearDevices
 import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
-import com.example.transferdata.R
-import com.example.transferdata.presentation.theme.TransferDataTheme
 import com.google.android.gms.wearable.Wearable
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +23,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
@@ -63,13 +49,13 @@ class MainActivity : ComponentActivity() {
             sensorManager.registerListener(
                 mainViewModel,
                 it,
-                SensorManager.SENSOR_DELAY_NORMAL
+                DELAY_FOR_ACCELEROMETER_25HZ
             )
         }
     }
 
     private fun unregisterAccelerometerListener() {
-        sensorManager.unregisterListener(mainViewModel, accelerometerSensor)
+        sensorManager.unregisterListener(mainViewModel)
     }
 
     private fun checkSensorAvailability() {
@@ -109,5 +95,6 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        private const val DELAY_FOR_ACCELEROMETER_25HZ = 40_000 // 25Hz
     }
 }
