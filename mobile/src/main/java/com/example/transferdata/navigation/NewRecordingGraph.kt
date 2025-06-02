@@ -4,18 +4,25 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.example.transferdata.navigation.MainNavGraphRoutes.CREATE_NEW_RECORDING
-import com.example.transferdata.navigation.MainNavGraphRoutes.CREATE_NEW_RECORDING_GRAPH
-import com.example.transferdata.navigation.MainNavGraphRoutes.RECORDING
+import com.example.transferdata.MainViewModel
+import com.example.transferdata.navigation.NewRecordingNavGraphRoutes.CREATE_NEW_RECORDING
+import com.example.transferdata.navigation.NewRecordingNavGraphRoutes.CREATE_NEW_RECORDING_GRAPH
+import com.example.transferdata.navigation.NewRecordingNavGraphRoutes.RECORDING
 import com.example.transferdata.presentation.createNewRecording.CreateNewRecording
 import com.example.transferdata.presentation.recording.RecordingScreen
 
+object NewRecordingNavGraphRoutes {
+    const val CREATE_NEW_RECORDING_GRAPH = "create_new_recording_graph"
+    const val CREATE_NEW_RECORDING = "create_new_recording"
+    const val RECORDING = "recording"
+}
+
 internal fun NavGraphBuilder.addNewRecordingGraph(
     navController: NavHostController,
+    mainViewModel: MainViewModel,
     onBackPressed: () -> Unit,
     onClosePressed: () -> Unit,
-    sendCount: (Int) -> Unit,
-    apiAvailable: Boolean,
+    setKeepScreenFlag: (Boolean) -> Unit
 ) {
     navigation(
         route = CREATE_NEW_RECORDING_GRAPH,
@@ -23,6 +30,7 @@ internal fun NavGraphBuilder.addNewRecordingGraph(
     ) {
         composable(CREATE_NEW_RECORDING) {
             CreateNewRecording(
+                mainViewModel = mainViewModel,
                 onBackPressed = onBackPressed,
                 createdNewRecording = {
                     navController.navigate(RECORDING) {
@@ -31,14 +39,15 @@ internal fun NavGraphBuilder.addNewRecordingGraph(
                         }
                     }
                 },
-                apiAvailable = apiAvailable,
             )
         }
         composable(RECORDING) {
             RecordingScreen(
+                mainViewModel = mainViewModel,
                 onBackPressed = onBackPressed,
                 startRecording = { },
                 stopRecording = { },
+                setKeepScreenFlag = setKeepScreenFlag
             )
         }
     }
