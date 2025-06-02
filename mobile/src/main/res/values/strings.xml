@@ -5,10 +5,18 @@
     <string name="create_new_recording">Nova captura</string>
     <string name="description_label">Descrição</string>
     <string name="name_label">Nome</string>
+    <string name="btn_create_new_recording">Iniciar</string>
 
     <!--  Recording Screen  -->
     <string name="new_recording">Iniciar captura</string>
     <string name="start_recording">Iniciar</string>
+    <string name="smart_watch">SmartWatch</string>
+    <string name="polar">Polar %s</string>
+    <string name="bluetooth_off">O Bluetooth esta desligado, ative-o para pode conectar aos dispositivos.</string>
+    <string name="connect_devices_to_transfer_data">Conecte o dispositivo ao aparelho para poder salvar os dados.</string>
+    <string name="smart_watch_only_polar_on">Conecte ao SmartWatch para pode capturar os dados.</string>
+    <string name="only_wear_on">Conectado ao SmartWatch com o app de transferência desativado ou sem a capacidade de capturar os dados do acelerômetro. Clique para verificar.</string>
+    <string name="ready_to_record">Tudo certo</string>
 
     <!--  Home Screen  -->
     <string name="home_toolbar_title">Minhas capturas</string>
