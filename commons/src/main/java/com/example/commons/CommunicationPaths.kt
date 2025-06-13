@@ -3,9 +3,16 @@ package com.example.commons
 class CommunicationPaths {
     companion object {
         const val START_ACTIVITY_PATH = "/start-activity"
-        const val INIT_ACCELEROMETER_TRANSFER_DATA_PATH = "/init-accelerometer-transfer-data"
-        const val STOP_ACCELEROMETER_TRANSFER_DATA_PATH = "/stop-accelerometer-transfer-data"
+
+        const val PING_PATH = "/ping"
+        const val PONG_PATH = "/pong"
+
+        const val INIT_TRANSFER_DATA_PATH = "/init-transfer-data"
+        const val STOP_TRANSFER_DATA_PATH = "/stop-transfer-data"
+
         const val ACCELEROMETER_DATA_PATH = "/accelerometer-data"
-        const val MESSAGE_ERROR_PATH = "/message-error"
+        const val HEART_RATE_DATA_PATH = "/heart-rate-data"
+        const val GYROSCOPE_DATA_PATH = "/gyroscope-data"
+        const val AMBIENT_TEMPERATURE_DATA_PATH = "/ambient-temperature-data"
     }
 }
