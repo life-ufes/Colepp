@@ -24,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -59,7 +58,12 @@ fun RecordingScreen(
     val recordingStatus = mainViewModel.recordingStatus.collectAsState()
     val preparingTime = mainViewModel.preparingTime.collectAsState()
     val chronometerTime = mainViewModel.chronometer.collectAsState()
-    val hrValue = mainViewModel.hrValue.collectAsState()
+    val hrPolarValue = mainViewModel.polarStatus.hrValue.collectAsState()
+    val accPolarValue = mainViewModel.polarStatus.accValue.collectAsState()
+    val hrWearValue = mainViewModel.wearableStatus.hrValue.collectAsState()
+    val gyroscopeWearValue = mainViewModel.wearableStatus.gyroscopeValue.collectAsState()
+    val ambTempValue = mainViewModel.wearableStatus.ambientTemperatureValue.collectAsState()
+    val accWearValue = mainViewModel.wearableStatus.accValue.collectAsState()
 
     val initialTime = mainViewModel.initTime.collectAsState()
     val initialHeartRateTime = mainViewModel.timeOfFirstPolarSample.collectAsState()
@@ -119,14 +123,12 @@ fun RecordingScreen(
                 recordingStatus = recordingStatus.value,
                 preparingTime = preparingTime.value,
                 chronometerTime = chronometerTime.value,
-                heartRate = hrValue.value,
+                heartRate = hrPolarValue.value?.first,
                 recordingButtonClick = mainViewModel::recordingButton,
                 devicesStatus = devicesStatus.value,
                 buttonEnabled = buttonEnabled.value,
-                sendMessageToStartWearApp = {
-                    mainViewModel.sendStarWearAppMessage()
-                },
-                connectOnPolar = mainViewModel::polarConnect,
+                sendMessageToStartWearApp = mainViewModel.wearableStatus::sendStarWearAppMessage,
+                connectOnPolar = mainViewModel.polarStatus::connect,
 
                 // para teste
                 initialTime = initialTime.value,
@@ -283,6 +285,7 @@ private fun DataScreen(
         }
     }
 }
+
 private fun Long.toShow(): String {
     Calendar.getInstance().apply {
         timeInMillis = this@toShow
