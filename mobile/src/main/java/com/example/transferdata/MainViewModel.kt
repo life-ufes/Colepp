@@ -1,39 +1,30 @@
 package com.example.transferdata
 
-import android.bluetooth.BluetoothAdapter
 import android.os.SystemClock
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.commons.AccelerometerData
-import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
-import com.example.commons.Capabilities.Companion.WEAR_CAPABILITY
-import com.example.commons.CommunicationPaths.Companion.ACCELEROMETER_DATA_PATH
-import com.example.commons.CommunicationPaths.Companion.INIT_ACCELEROMETER_TRANSFER_DATA_PATH
-import com.example.commons.CommunicationPaths.Companion.START_ACTIVITY_PATH
-import com.example.commons.CommunicationPaths.Companion.STOP_ACCELEROMETER_TRANSFER_DATA_PATH
-import com.example.transferdata.bluetoothHandler.BluetoothStateListener
+import com.example.transferdata.bluetoothHandler.BluetoothStatus
 import com.example.transferdata.common.utils.DevicesStatus
 import com.example.transferdata.common.utils.RecordingStatus
-import com.google.android.gms.wearable.CapabilityClient
-import com.google.android.gms.wearable.CapabilityInfo
-import com.google.android.gms.wearable.MessageClient
-import com.google.android.gms.wearable.MessageEvent
-import com.google.android.gms.wearable.Node
-import com.polar.sdk.api.PolarBleApi
-import com.polar.sdk.api.PolarBleApiCallback
-import com.polar.sdk.api.model.PolarDeviceInfo
-import com.polar.sdk.api.model.PolarHrData
-import com.polar.sdk.api.model.PolarSensorSetting
+import com.example.transferdata.database.model.AccelerometerPolarEntity
+import com.example.transferdata.database.model.AccelerometerSmartwatchEntity
+import com.example.transferdata.database.model.AmbientTemperatureSmartwatchEntity
+import com.example.transferdata.database.model.GyroscopeSmartwatchEntity
+import com.example.transferdata.database.model.HeartRatePolarEntity
+import com.example.transferdata.database.model.HeartRateSmartwatchEntity
+import com.example.transferdata.database.model.RecordEntity
+import com.example.transferdata.database.repository.RecordDatabase
+import com.example.transferdata.polarHandler.PolarStatus
+import com.example.transferdata.wearableHandler.WearableStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -43,241 +34,149 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val polarBleApi: PolarBleApi,
-    private val messageClient: MessageClient,
-) : ViewModel(),
-    MessageClient.OnMessageReceivedListener,
-    CapabilityClient.OnCapabilityChangedListener,
-    BluetoothStateListener {
+    val bluetoothStatus: BluetoothStatus,
+    val polarStatus: PolarStatus,
+    val wearableStatus: WearableStatus,
+    private val recordDatabase: RecordDatabase
+) : ViewModel() {
 
     init {
         viewModelScope.launch {
             delay(3000L)// gambiarra para poder coletar os valores dos flows apos eles instanciarem
             recordingStatusHandler()
             observerPreparing()
-        }
-    }
+            observerClockSkew()
+            observerWearSamples()
+            observerPolarSamples()
 
-    //Smartwatch infos
-    private val _capabilityInfos = MutableStateFlow<Map<String, Set<Node>>>(emptyMap())
-    val capabilityInfos = _capabilityInfos.asStateFlow()
-
-    override fun onMessageReceived(messageEvent: MessageEvent) {
-        Log.d(TAG, "Message received: ${messageEvent.path} with ${messageEvent.data}")
-        if (messageEvent.path == ACCELEROMETER_DATA_PATH) {
-            val data = messageEvent.data
-            if (data.isNotEmpty()) {
-                val accelerometerData = AccelerometerData.fromByteArray(data)
-                Log.d(TAG, "Accelerometer data received: $accelerometerData")
-                // temporario para teste
-                _wearSamples.value += Pair(
-                    accelerometerData,
-                    System.currentTimeMillis()
-                )
-                if (_timeOfFirstWearSample.value == null) {
-                    _timeOfFirstWearSample.value = System.currentTimeMillis()
-                }
-            } else {
-                Log.d(TAG, "No accelerometer data received")
-            }
-        }
-    }
-
-    override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
-        try {
-            updateCapabilityInfo(
-                mapOf(
-                    capabilityInfo.name to capabilityInfo.nodes
-                )
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        Log.d(TAG, "Capability values: ${_capabilityInfos.value}")
-    }
-
-    fun updateCapabilityInfo(infos: Map<String, Set<Node>>) {
-        Log.d(TAG, "Updating capability info: $infos")
-        Log.d(TAG, "Current capability infos: ${_capabilityInfos.value}")
-        val updatedInfos = _capabilityInfos.value.toMutableMap()
-        infos.forEach { (key, values) ->
-            updatedInfos[key] = values
-        }
-        _capabilityInfos.value = updatedInfos
-    }
-
-    fun sendStarWearAppMessage() {
-        capabilityInfos.value[WEAR_CAPABILITY]?.let { nodes ->
-            Log.d(TAG, "Sending message to start wear app to nodes: $nodes")
-            nodes.forEach { node ->
-                messageClient.sendMessage(
-                    node.id,
-                    START_ACTIVITY_PATH,
-                    null
-                )
-            }
-        }
-    }
-
-    private fun sendStartAccelerometerMessage() {
-        capabilityInfos.value[ACCELEROMETER_CAPABILITY]?.let { nodes ->
-            Log.d(TAG, "Sending message to start accelerometer to nodes: $nodes")
-            nodes.forEach { node ->
-                messageClient.sendMessage(
-                    node.id,
-                    INIT_ACCELEROMETER_TRANSFER_DATA_PATH,
-                    null
-                )
-            }
-        }
-    }
-
-    private fun sendStopAccelerometerMessage() {
-        capabilityInfos.value[ACCELEROMETER_CAPABILITY]?.let { nodes ->
-            Log.d(TAG, "Sending message to stop accelerometer to nodes: $nodes")
-            nodes.forEach { node ->
-                messageClient.sendMessage(
-                    node.id,
-                    STOP_ACCELEROMETER_TRANSFER_DATA_PATH,
-                    null
-                )
-            }
-        }
-    }
-
-    //Bluetooth infos
-    private val _bluetoothEnable = MutableStateFlow(false)
-    val bluetoothEnable = _bluetoothEnable.asStateFlow()
-
-    fun checkBluetoothState(adapter: BluetoothAdapter) {
-        _bluetoothEnable.value = adapter.isEnabled == true
-    }
-
-    override fun onBluetoothStateChanged(state: Int) {
-        Log.d(TAG, "Bluetooth state changed: $state")
-        when (state) {
-            BluetoothAdapter.STATE_OFF -> {
-                Log.d(TAG, "Bluetooth is OFF")
-                _bluetoothEnable.value = false
-            }
-
-            BluetoothAdapter.STATE_ON -> {
-                Log.d(TAG, "Bluetooth is ON")
-                _bluetoothEnable.value = true
-            }
-        }
-    }
-
-    //Polar Infos
-    private var hrDisposable: Disposable? = null
-    private var autoConnectDisposable: Disposable? = null
-
-    private var _deviceId = MutableStateFlow<String?>(null)
-    val deviceId = _deviceId.asStateFlow()
-    private var _polarIsConnected = MutableStateFlow(false)
-    val polarIsConnected = _polarIsConnected.asStateFlow()
-
-    private val _hrValue = MutableStateFlow<Int?>(null)
-    val hrValue = _hrValue.asStateFlow()
-
-    fun polarConnect() {
-        if (polarIsConnected.value) {
-            Log.d(TAG, "Already connected to Polar device")
-            return
-        }
-        polarBleApi.setApiCallback(myCallback)
-        if (autoConnectDisposable != null && !autoConnectDisposable!!.isDisposed) {
-            Log.d(TAG, "Auto connect already in progress")
-            return
-        }
-        Log.d(TAG, "Starting auto connect to Polar device")
-        autoConnectDisposable = polarBleApi.autoConnectToDevice(-60, "180D", null)
-            .subscribe(
-                { Log.d(TAG, "auto connect search complete") },
-                { throwable: Throwable -> Log.e(TAG, "Error on auto connect", throwable) }
-            )
-    }
-
-    private fun polarInitHrListener() {
-        val isDisposed = hrDisposable?.isDisposed ?: true
-        if (!isDisposed) {
-            hrDisposable?.dispose()
-        }
-        deviceId.value?.let {
-            hrDisposable = polarBleApi.startHrStreaming(it)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { hrData: PolarHrData ->
-                        hrData.samples.firstOrNull()?.let { sample ->
-                            _hrValue.value = sample.hr
-                            _polarSamples.value += Pair(sample.hr, System.currentTimeMillis())
-                            Log.d(TAG, "HR value received: ${sample.hr}")
-
-                            // temporario para teste
-                            if (_timeOfFirstPolarSample.value == null) {
-                                _timeOfFirstPolarSample.value = System.currentTimeMillis()
-                            }
-                        }
-                    },
-                    { throwable: Throwable ->
-                        Log.e(TAG, "Error receiving HR data", throwable)
+            //para teste
+            polarStatus.hrValue.collectLatest {
+                it?.let { hr ->
+                    _polarSamples.value += hr
+                    _timeOfFirstPolarSample.value ?: run {
+                        _timeOfFirstPolarSample.value = hr.second / 1000L // Convert to milliseconds
                     }
-                )
+                }
+            }
         }
     }
 
-    private fun polarStopHrListener() {
-        _hrValue.value = null
-        hrDisposable?.dispose()
-    }
+    private fun observerPolarSamples() {
+        viewModelScope.launch {
+            polarStatus.hrValue.collectLatest { hr ->
+                if (hr != null && currentRecordId.value != null) {
+                    recordDatabase.heartRatePolarDao().insert(
+                        HeartRatePolarEntity(
+                            heartRate = hr.first,
+                            timestamp = hr.second,
+                            recordId = currentRecordId.value!!
+                        )
+                    )
+                }
+            }
 
-    fun polarDisconnect() {
-        deviceId.value?.let { polarBleApi.disconnectFromDevice(it) }
-    }
-
-    private val myCallback = object : PolarBleApiCallback() {
-        override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
-            Log.d(TAG, "CONNECTED: ${polarDeviceInfo.deviceId}")
-            _deviceId.value = polarDeviceInfo.deviceId
-            _polarIsConnected.value = true
+            polarStatus.accValue.collectLatest { acc ->
+                if (acc != null && currentRecordId.value != null) {
+                    recordDatabase.accelerometerPolarDao().insert(
+                        AccelerometerPolarEntity(
+                            x = acc.x,
+                            y = acc.y,
+                            z = acc.z,
+                            timestamp = acc.timeStamp,
+                            recordId = currentRecordId.value!!
+                        )
+                    )
+                }
+            }
         }
+    }
 
-        override fun deviceConnecting(polarDeviceInfo: PolarDeviceInfo) {
-            Log.d(TAG, "CONNECTING: ${polarDeviceInfo.deviceId}")
-        }
+    private fun observerWearSamples() {
+        viewModelScope.launch {
+            wearableStatus.accValue.collectLatest { acc ->
+                if (acc != null && currentRecordId.value != null) {
+                    recordDatabase.accelerometerSmartwatchDao().insert(
+                        AccelerometerSmartwatchEntity(
+                            x = acc.x,
+                            y = acc.y,
+                            z = acc.z,
+                            timestamp = acc.timestamp,
+                            recordId = currentRecordId.value!!
+                        )
+                    )
+                }
+            }
 
-        override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
-            Log.d(TAG, "DISCONNECTED: ${polarDeviceInfo.deviceId}")
-            _deviceId.value = null
-            _polarIsConnected.value = false
-        }
+            wearableStatus.hrValue.collectLatest { hr ->
+                if (hr != null && currentRecordId.value != null) {
+                    recordDatabase.heartRateSmartwatchDao().insert(
+                        HeartRateSmartwatchEntity(
+                            heartRate = hr.heartRate,
+                            timestamp = hr.timestamp,
+                            recordId = currentRecordId.value!!
+                        )
+                    )
+                }
+            }
 
-        override fun batteryLevelReceived(identifier: String, level: Int) {
-            Log.d(TAG, "BATTERY LEVEL: $level")
+            wearableStatus.gyroscopeValue.collectLatest { gyro ->
+                if (gyro != null && currentRecordId.value != null) {
+                    recordDatabase.gyroscopeSmartwatchDao().insert(
+                        GyroscopeSmartwatchEntity(
+                            x = gyro.x,
+                            y = gyro.y,
+                            z = gyro.z,
+                            timestamp = gyro.timestamp,
+                            recordId = currentRecordId.value!!
+                        )
+                    )
+                }
+            }
+
+            wearableStatus.ambientTemperatureValue.collectLatest { temp ->
+                if (temp != null && currentRecordId.value != null) {
+                    recordDatabase.ambientTemperatureSmartwatchDao().insert(
+                        AmbientTemperatureSmartwatchEntity(
+                            temperature = temp.temperature,
+                            timestamp = temp.timestamp,
+                            recordId = currentRecordId.value!!
+                        )
+                    )
+                }
+            }
         }
     }
 
-    fun polarForegroundEntered() {
-        polarBleApi.foregroundEntered()
+    private fun observerClockSkew() {
+        viewModelScope.launch {
+            wearableStatus.syncTimeValue.collectLatest { syncTime ->
+                syncTime?.let { time ->
+                    _currentRecordId.value?.let { recordId ->
+                        recordDatabase.recordDao().setClockSkew(
+                            id = recordId,
+                            clockSkew = time
+                        )
+                    }
+                }
+            }
+        }
     }
 
-    fun polarShutDown() {
-        polarBleApi.shutDown()
-    }
+    private val _currentRecordId = MutableStateFlow<Long?>(null)
+    val currentRecordId = _currentRecordId.asStateFlow()
 
-    //Recording Status
     val devicesStatus: StateFlow<DevicesStatus> = combine(
-        _bluetoothEnable,
-        _polarIsConnected,
-        _capabilityInfos
-    ) { bluetoothEnable, deviceConnected, capabilityInfos ->
+        bluetoothStatus.bluetoothEnable,
+        polarStatus.device,
+        wearableStatus.capabilityInfos
+    ) { bluetoothEnable, device, capabilityInfos ->
         Log.d(
             TAG,
-            "combine: bluetoothEnable: $bluetoothEnable, deviceConnected: $deviceConnected, capabilityInfos: $capabilityInfos"
+            "combine: bluetoothEnable: $bluetoothEnable, device: $device, capabilityInfos: $capabilityInfos"
         )
         DevicesStatus.getRecordingStatus(
             bluetoothState = bluetoothEnable,
-            polarState = deviceConnected,
+            polarState = device != null,
             wearCapabilities = capabilityInfos
         )
     }.stateIn(
@@ -304,16 +203,34 @@ class MainViewModel @Inject constructor(
 
     fun recordingButton() {
         if (_recordingStatus.value == RecordingStatus.Ready) {
-            sendStartAccelerometerMessage()
-            polarInitHrListener()
+            wearableStatus.startTransferData()
+            polarStatus.startListeners()
             _recordingStatus.value = RecordingStatus.Preparing
+            viewModelScope.launch {
+                try {
+                    val clockSkew = wearableStatus.syncTimeValue.value ?: 0L
+                    recordDatabase.recordDao().insert(
+                        RecordEntity(
+                            title = "Titulo tal",
+                            description = "Descricao tal",
+                            clockSkewSmartwatchNanos = clockSkew
+                        )
+                    ).run {
+                        Log.d(TAG, "Record inserted with ID: $this")
+                        _currentRecordId.value = this
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error inserting record: ${e.message}")
+                    _recordingStatus.value = RecordingStatus.Error
+                }
+            }
 
             //temporario para teste
             _initTime.value = System.currentTimeMillis()
         }
         if (_recordingStatus.value == RecordingStatus.Running) {
-            sendStopAccelerometerMessage()
-            polarStopHrListener()
+            wearableStatus.stopTransferData()
+            polarStatus.stopListeners()
             _recordingStatus.value = RecordingStatus.Finished
         }
     }
@@ -356,51 +273,49 @@ class MainViewModel @Inject constructor(
                     is RecordingStatus.Preparing -> {
                         startCountdown()
                     }
+
                     is RecordingStatus.Running -> {
                         startChronometer()
+                        val timeNanos = SystemClock.elapsedRealtimeNanos()
+                        val timeMillis = System.currentTimeMillis()
+                        currentRecordId.value?.let { recordId ->
+                            recordDatabase.recordDao().setStarRecording(
+                                id = recordId,
+                                starRecordingNanos = timeNanos,
+                                starRecordingMilli = timeMillis
+                            )
+                        }
                     }
+
                     is RecordingStatus.Finished, RecordingStatus.Error -> {
 
                         val mediaOfTimesHR = _polarSamples.value
-                            .map { it.second }
-                            .mapIndexed { index, time ->
-                                if(index==0) {
-                                    0L
-                                }else{
-                                    time - _polarSamples.value[index - 1].second
-                                }
-                            }
-                            .drop(0)
+                            .zipWithNext { a, b -> b.second - a.second }
                             .average()
 
                         val mediaOfTimesWear = _wearSamples.value
-                            .map { it.second }
-                            .mapIndexed { index, time ->
-                                if(index==0) {
-                                    0L
-                                }else{
-                                    time - _wearSamples.value[index - 1].second
-                                }
-                            }
-                            .drop(0)
+                            .zipWithNext { a, b -> b.second - a.second }
                             .average()
 
-                        val wearSorted = _wearSamples.value.sortedBy { it.first.timestamp }
-                        val mediaOfTimeCollectWear = wearSorted
-                            .mapIndexed { index, data ->
-                                if (index == 0) {
-                                    0L
-                                } else {
-                                    data.first.timestamp - wearSorted[index - 1].first.timestamp
-                                }
-                            }
-                            .drop(0)
+                        val mediaOfTimeCollectWear = _wearSamples.value
+                            .sortedBy { it.first.timestamp }
+                            .zipWithNext { a, b -> b.first.timestamp - a.first.timestamp }
                             .average()
 
-                        Log.d(TAG, "Average time between HR samples: $mediaOfTimesHR ms ${1000/mediaOfTimesHR} Hz")
-                        Log.d(TAG, "Average time between Wear samples: $mediaOfTimesWear ms ${1000/mediaOfTimesWear} Hz")
-                        Log.d(TAG, "Average time between Wear data collection: $mediaOfTimeCollectWear ns ${1_000_000_000/mediaOfTimeCollectWear} Hz")
+                        Log.d(
+                            TAG,
+                            "Average time between HR samples: $mediaOfTimesHR ms ${1000 / mediaOfTimesHR} Hz"
+                        )
+                        Log.d(
+                            TAG,
+                            "Average time between Wear samples: $mediaOfTimesWear ms ${1000 / mediaOfTimesWear} Hz"
+                        )
+                        Log.d(
+                            TAG,
+                            "Average time between Wear data collection: $mediaOfTimeCollectWear ns ${1_000_000_000 / mediaOfTimeCollectWear} Hz"
+                        )
                     }
+
                     else -> {}
                 }
             }
@@ -441,11 +356,11 @@ class MainViewModel @Inject constructor(
 
     fun onScreenDestroy() {
         Log.d(TAG, "onScreenDestroy called")
-        polarStopHrListener()
-        sendStopAccelerometerMessage()
+        polarStatus.stopListeners()
+        wearableStatus.stopTransferData()
         _chronometer.value = 0L
 
-        if(devicesStatus.value is DevicesStatus.ReadyToRecord) {
+        if (devicesStatus.value is DevicesStatus.ReadyToRecord) {
             _recordingStatus.value = RecordingStatus.Ready
         } else {
             _recordingStatus.value = RecordingStatus.NotReady

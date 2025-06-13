@@ -17,6 +17,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
+import com.example.commons.Capabilities.Companion.AMBIENT_TEMPERATURE_CAPABILITY
+import com.example.commons.Capabilities.Companion.GYROSCOPE_CAPABILITY
+import com.example.commons.Capabilities.Companion.HEART_RATE_CAPABILITY
 import com.example.commons.Capabilities.Companion.WEAR_CAPABILITY
 import com.example.transferdata.navigation.MainNavHost
 import com.google.android.gms.wearable.CapabilityClient
@@ -59,8 +62,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun configureBluetooth() {
-        bluetoothStateReceiver = BluetoothStateReceiver(mainViewModel)
-        mainViewModel.checkBluetoothState(
+        bluetoothStateReceiver = BluetoothStateReceiver(mainViewModel.bluetoothStatus)
+        mainViewModel.bluetoothStatus.checkBluetoothState(
             (applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
         )
     }
@@ -71,43 +74,44 @@ class MainActivity : ComponentActivity() {
             bluetoothStateReceiver,
             IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         )
-        mainViewModel.polarForegroundEntered()
+        mainViewModel.polarStatus.foregroundEntered()
 
-        messageClient.addListener(mainViewModel)
+        messageClient.addListener(mainViewModel.wearableStatus)
         registerCapabilityListener()
     }
 
     private fun registerCapabilityListener() {
         capabilityClient.addListener(
-            mainViewModel,
+            mainViewModel.wearableStatus,
             Uri.parse("wear://"),
             CapabilityClient.FILTER_REACHABLE
         )
-        capabilityClient.getCapability(
-            WEAR_CAPABILITY,
-            CapabilityClient.FILTER_REACHABLE
-        ).addOnSuccessListener { capabilityInfo ->
-            mainViewModel.updateCapabilityInfo(
-                mapOf(
-                    capabilityInfo.name to capabilityInfo.nodes
-                )
+        setCapabilitiesListeners(
+            listOf(
+                WEAR_CAPABILITY,
+                ACCELEROMETER_CAPABILITY,
+                HEART_RATE_CAPABILITY,
+                GYROSCOPE_CAPABILITY,
+                AMBIENT_TEMPERATURE_CAPABILITY
             )
-            Log.d(TAG, "Capability info: ${capabilityInfo.nodes} for ${capabilityInfo.name}")
-        }.addOnFailureListener { exception ->
-            Log.d(TAG, "Failed to get capability info: $exception")
-        }
-        capabilityClient.getCapability(
-            ACCELEROMETER_CAPABILITY,
-            CapabilityClient.FILTER_REACHABLE
-        ).addOnSuccessListener { capabilityInfo ->
-            mainViewModel.updateCapabilityInfo(
-                mapOf(
-                    capabilityInfo.name to capabilityInfo.nodes
+        )
+    }
+
+    private fun setCapabilitiesListeners(capabilities: List<String>){
+        capabilities.forEach { capability ->
+            capabilityClient.getCapability(
+                capability,
+                CapabilityClient.FILTER_REACHABLE
+            ).addOnSuccessListener { capabilityInfo ->
+                mainViewModel.wearableStatus.updateCapabilityInfo(
+                    mapOf(
+                        capabilityInfo.name to capabilityInfo.nodes
+                    )
                 )
-            )
-            Log.d(TAG, "Capability info: ${capabilityInfo.nodes} for ${capabilityInfo.name}")
-        }.addOnFailureListener { exception ->
-            Log.d(TAG, "Failed to get capability info: $exception")
+                Log.d(TAG, "Capability info: ${capabilityInfo.nodes} for ${capabilityInfo.name}")
+            }.addOnFailureListener { exception ->
+                Log.d(TAG, "Failed to get capability info: $exception")
+            }
         }
     }
 
@@ -121,14 +125,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        messageClient.removeListener(mainViewModel)
-        capabilityClient.removeListener(mainViewModel)
+        messageClient.removeListener(mainViewModel.wearableStatus)
+        capabilityClient.removeListener(mainViewModel.wearableStatus)
     }
 
     public override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(bluetoothStateReceiver)
-        mainViewModel.polarShutDown()
+        mainViewModel.polarStatus.shutDown()
         mainViewModel.onScreenDestroy()
     }
 }
