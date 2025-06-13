@@ -3,12 +3,12 @@ package com.example.commons
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-data class AccelerometerData(
+data class GyroscopeData(
     val x: Float,
     val y: Float,
     val z: Float,
     val timestamp: Long
-){
+) {
     fun toByteArray(): ByteArray {
         return ByteBuffer.allocate(3 * Float.SIZE_BYTES + Long.SIZE_BYTES)
             .order(ByteOrder.LITTLE_ENDIAN)
@@ -20,9 +20,9 @@ data class AccelerometerData(
     }
 
     companion object {
-        fun fromByteArray(data: ByteArray): AccelerometerData {
+        fun fromByteArray(data: ByteArray): GyroscopeData {
             val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
-            return AccelerometerData(
+            return GyroscopeData(
                 x = buffer.float,
                 y = buffer.float,
                 z = buffer.float,
