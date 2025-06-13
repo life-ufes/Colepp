@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -32,12 +33,16 @@ android {
     }
     kapt {
         correctErrorTypes = true
+        useBuildCache = true
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
+    }
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 }
 
@@ -68,6 +73,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
