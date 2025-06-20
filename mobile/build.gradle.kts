@@ -78,6 +78,11 @@ dependencies {
     implementation(libs.room.ktx)
     kapt(libs.room.compiler)
 
+    implementation(libs.gson)
+
+    implementation(libs.protobuf.javalite)
+    implementation(libs.commons.io)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

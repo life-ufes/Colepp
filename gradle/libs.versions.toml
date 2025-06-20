@@ -22,7 +22,7 @@ horologistComposeTools = "0.4.8"
 horologistTiles = "0.4.8"
 watchfaceComplicationsDataSourceKtx = "1.1.1"
 compose-compiler = "1.5.15"
-polarsdk = "5.5.0"
+polarsdk = "5.17.0"
 rxjava = "3.1.6"
 rxandroid = "3.0.2"
 composeVersion = "1.7.4"
@@ -34,7 +34,10 @@ horologist = "0.6.23"
 compose-ui-tooling = "1.4.1"
 jetbrainsKotlinJvm = "1.9.0"
 roomVersion = "2.7.1"
+gsonVersion = "2.10.1"
 healthServicesVersion = "1.0.0"
+protobufJavaliteVersion = "3.17.3"
+commonsIoVersion = "2.10.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -82,7 +85,10 @@ wear-compose-ui-tooling = { module = "androidx.wear.compose:compose-ui-tooling",
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomVersion" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomVersion" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomVersion" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gsonVersion" }
 androidx-health-services = { module = "androidx.health:health-services-client", version.ref = "healthServicesVersion" }
+protobuf-javalite = { group = "com.google.protobuf", name = "protobuf-javalite", version.ref = "protobufJavaliteVersion" }
+commons-io = { group = "commons-io", name = "commons-io", version.ref = "commonsIoVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

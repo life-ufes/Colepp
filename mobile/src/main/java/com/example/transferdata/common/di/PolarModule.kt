@@ -22,11 +22,11 @@ object PolarModule {
             setOf(
                 PolarBleApi.PolarBleSdkFeature.FEATURE_HR,
                 PolarBleApi.PolarBleSdkFeature.FEATURE_BATTERY_INFO,
-                PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_H10_EXERCISE_RECORDING,
-                PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_OFFLINE_RECORDING,
                 PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_ONLINE_STREAMING,
                 PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_DEVICE_TIME_SETUP,
-                PolarBleApi.PolarBleSdkFeature.FEATURE_DEVICE_INFO
+                PolarBleApi.PolarBleSdkFeature.FEATURE_DEVICE_INFO,
+                PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_FIRMWARE_UPDATE,
+                PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_FILE_TRANSFER
             )
         )
     }

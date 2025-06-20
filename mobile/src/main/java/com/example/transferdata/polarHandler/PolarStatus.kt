@@ -2,14 +2,18 @@ package com.example.transferdata.polarHandler
 
 import android.os.SystemClock
 import android.util.Log
+import com.polar.androidcommunications.api.ble.model.DisInfo
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiCallback
 import com.polar.sdk.api.model.PolarAccelerometerData
 import com.polar.sdk.api.model.PolarDeviceInfo
+import com.polar.sdk.api.model.PolarHealthThermometerData
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 class PolarStatus @Inject constructor(
@@ -41,6 +45,7 @@ class PolarStatus @Inject constructor(
         }
         Log.d(TAG, "Starting auto connect to Polar device")
         autoConnectDisposable = polarBleApi.autoConnectToDevice(-60, "180D", null)
+
             .subscribe(
                 { Log.d(TAG, "auto connect search complete") },
                 { throwable: Throwable -> Log.e(TAG, "Error on auto connect", throwable) }
@@ -52,7 +57,7 @@ class PolarStatus @Inject constructor(
         initAccListener()
     }
 
-    private fun initAccListener(){
+    private fun initAccListener() {
         val isDisposed = accDisposable?.isDisposed ?: true
         if (!isDisposed) {
             accDisposable?.dispose()
@@ -86,7 +91,9 @@ class PolarStatus @Inject constructor(
             hrDisposable?.dispose()
         }
         device.value?.let {
-            hrDisposable = polarBleApi.startHrStreaming(it.deviceId)
+            val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            hrDisposable = polarBleApi.setLocalTime(it.deviceId, cal)
+                .andThen(polarBleApi.startHrStreaming(it.deviceId))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     { hrData ->
@@ -126,6 +133,17 @@ class PolarStatus @Inject constructor(
         override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
             Log.d(TAG, "DISCONNECTED: ${polarDeviceInfo.deviceId}")
             _device.value = null
+        }
+
+        override fun disInformationReceived(identifier: String, disInfo: DisInfo) {
+            Log.d(TAG, "DIS INFO: $identifier - $disInfo")
+        }
+
+        override fun htsNotificationReceived(identifier: String, data: PolarHealthThermometerData) {
+            Log.d(
+                TAG,
+                "HTS NOTIFICATION: $identifier - celsius: ${data.celsius}, fahrenheit: ${data.fahrenheit}"
+            )
         }
 
         override fun batteryLevelReceived(identifier: String, level: Int) {
