@@ -6,10 +6,14 @@ import com.example.transferdata.database.model.GyroscopeSmartwatchEntity
 import com.example.transferdata.database.model.ThreeAxisSensorValue
 
 @Dao
-abstract class GyroscopeSmartwatchDao: BaseDao<GyroscopeSmartwatchEntity> {
-    @Query("SELECT x, y, z FROM ${GyroscopeSmartwatchEntity.TABLE_NAME} LIMIT 1000")
-    abstract suspend fun getDataLimited(): List<ThreeAxisSensorValue>
-
-    @Query("SELECT timestamp FROM ${GyroscopeSmartwatchEntity.TABLE_NAME} ORDER BY timestamp LIMIT 1000")
-    abstract suspend fun getLimitedSampleOfTimestamp(): List<Long>
+abstract class GyroscopeSmartwatchDao : BaseDao<GyroscopeSmartwatchEntity> {
+    @Query(
+        """
+        SELECT x, y, z, timestamp
+        FROM ${GyroscopeSmartwatchEntity.TABLE_NAME}
+        WHERE recordId = :recordId
+        ORDER BY timestamp ASC
+        """
+    )
+    abstract suspend fun getAllDataFromRecord(recordId: Long): List<ThreeAxisSensorValue>
 }

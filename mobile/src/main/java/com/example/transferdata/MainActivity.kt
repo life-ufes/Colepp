@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -16,15 +17,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.lifecycle.lifecycleScope
 import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
 import com.example.commons.Capabilities.Companion.AMBIENT_TEMPERATURE_CAPABILITY
 import com.example.commons.Capabilities.Companion.GYROSCOPE_CAPABILITY
 import com.example.commons.Capabilities.Companion.HEART_RATE_CAPABILITY
 import com.example.commons.Capabilities.Companion.WEAR_CAPABILITY
+import com.example.transferdata.database.repository.RecordDatabase
+import com.example.transferdata.dataset.DatasetGenerator
 import com.example.transferdata.navigation.MainNavHost
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import java.io.File
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -39,9 +46,13 @@ class MainActivity : ComponentActivity() {
     private val messageClient by lazy { Wearable.getMessageClient(this) }
     private val capabilityClient by lazy { Wearable.getCapabilityClient(this) }
 
+    @Inject
+    lateinit var recordDatabase: RecordDatabase
+    private lateinit var datasetGenerator: DatasetGenerator
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        datasetGenerator = DatasetGenerator(recordDatabase)
         setContent {
             MaterialTheme {
                 Surface(
@@ -52,7 +63,8 @@ class MainActivity : ComponentActivity() {
                         onBackPressed = { this@MainActivity.onBackPressedDispatcher.onBackPressed() },
                         onClosePressed = { finish() },
                         mainViewModel = mainViewModel,
-                        setKeepScreenFlag = ::setKeepScreenFlag
+                        setKeepScreenFlag = ::setKeepScreenFlag,
+                        createDatasetFile = ::createDatasetFile,
                     )
                 }
             }
@@ -97,7 +109,7 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    private fun setCapabilitiesListeners(capabilities: List<String>){
+    private fun setCapabilitiesListeners(capabilities: List<String>) {
         capabilities.forEach { capability ->
             capabilityClient.getCapability(
                 capability,
@@ -120,6 +132,24 @@ class MainActivity : ComponentActivity() {
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
+    private fun createDatasetFile(recordId: Long) {
+        lifecycleScope.launch {
+            val record = recordDatabase.recordDao().getById(recordId)
+            if (record == null) {
+                Toast.makeText(
+                    this@MainActivity,
+                    applicationContext.getText(R.string.toast_record_not_found),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+
+            val file = File(applicationContext.filesDir, "${record.title}_${System.currentTimeMillis()}.csv")
+            Log.d(TAG, "Creating dataset file: ${file.absolutePath}")
+            datasetGenerator.generateDataset(recordId,file)
         }
     }
 

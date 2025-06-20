@@ -13,7 +13,9 @@ data class RecordEntity(
     val description: String,
     val starRecordingNanos: Long = 0L,
     val starRecordingMilli: Long = 0L,
-    val clockSkewSmartwatchNanos: Long = 0L
+    val clockSkewSmartwatchNanos: Long = 0L,
+    val stopRecordingNanos: Long = 0L,
+    val stopRecordingMilli: Long = 0L,
 ){
     companion object {
         const val TABLE_NAME = "record"

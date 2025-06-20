@@ -7,9 +7,13 @@ import com.example.transferdata.database.model.ThreeAxisSensorValue
 
 @Dao
 abstract class AccelerometerSmartwatchDao : BaseDao<AccelerometerSmartwatchEntity> {
-    @Query("SELECT x, y, z FROM ${AccelerometerSmartwatchEntity.TABLE_NAME} LIMIT 1000")
-    abstract suspend fun getDataLimited(): List<ThreeAxisSensorValue>
-
-    @Query("SELECT timestamp FROM ${AccelerometerSmartwatchEntity.TABLE_NAME} ORDER BY timestamp LIMIT 1000")
-    abstract suspend fun getLimitedSampleOfTimestamp(): List<Long>
+    @Query(
+        """
+        SELECT x, y, z, timestamp
+        FROM ${AccelerometerSmartwatchEntity.TABLE_NAME}
+        WHERE recordId = :recordId
+        ORDER BY timestamp ASC
+        """
+    )
+    abstract suspend fun getAllDataFromRecord(recordId: Long): List<ThreeAxisSensorValue>
 }
