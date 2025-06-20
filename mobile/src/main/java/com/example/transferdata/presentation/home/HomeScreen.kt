@@ -3,7 +3,6 @@ package com.example.transferdata.presentation.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.transferdata.MainViewModel
 import com.example.transferdata.R
 import com.example.transferdata.common.composeUI.Toolbar
 import com.example.transferdata.common.utils.Size
@@ -35,9 +33,9 @@ import com.example.transferdata.database.model.RecordEntity
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel,
     onRecordingPressed: () -> Unit,
     createNewRecording: () -> Unit,
+    onRecordClicked: (Long) -> Unit
 ) {
     val records = viewModel.recordings.collectAsState()
     Scaffold(
@@ -71,7 +69,8 @@ fun HomeScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize(),
-            records = records.value
+            records = records.value,
+            onRecordClicked = onRecordClicked
         )
     }
 }
@@ -79,7 +78,8 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     modifier: Modifier,
-    records: List<RecordEntity>
+    records: List<RecordEntity>,
+    onRecordClicked: (Long) -> Unit
 ) {
     LazyColumn(
         modifier = modifier
@@ -87,7 +87,11 @@ private fun HomeContent(
         verticalArrangement = Arrangement.spacedBy(Size.size04),
     ) {
         items(records) {
-            Text(it.title)
+            Text(
+                it.title,
+                modifier = Modifier
+                    .clickable { onRecordClicked(it.id) }
+            )
         }
     }
 }
@@ -153,6 +157,7 @@ private fun BottomAppBarPreview() {
 private fun HomeContentPreview() {
     HomeContent(
         modifier = Modifier.fillMaxSize(),
-        records = emptyList()
+        records = emptyList(),
+        onRecordClicked = {}
     )
 }
