@@ -13,6 +13,8 @@ import com.example.commons.CommunicationPaths.Companion.AMBIENT_TEMPERATURE_DATA
 import com.example.commons.CommunicationPaths.Companion.GYROSCOPE_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.HEART_RATE_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.INIT_TRANSFER_DATA_PATH
+import com.example.commons.CommunicationPaths.Companion.PING_PATH
+import com.example.commons.CommunicationPaths.Companion.PONG_PATH
 import com.example.commons.CommunicationPaths.Companion.START_ACTIVITY_PATH
 import com.example.commons.CommunicationPaths.Companion.STOP_TRANSFER_DATA_PATH
 import com.example.commons.GyroscopeData
@@ -67,7 +69,7 @@ class WearableStatus @Inject constructor(
         val offsets = mutableListOf<Long>()
 
         val listener = MessageClient.OnMessageReceivedListener { event ->
-            if (event.path == "/pong") {
+            if (event.path == PONG_PATH) {
                 val t3 = SystemClock.elapsedRealtimeNanos()
                 Log.d("TimeSync", "Received pong message: ${event.data.size} bytes")
                 val buffer = ByteBuffer.wrap(event.data).order(ByteOrder.LITTLE_ENDIAN)
@@ -92,40 +94,35 @@ class WearableStatus @Inject constructor(
                     .order(ByteOrder.LITTLE_ENDIAN)
                     .putLong(t1)
                     .array()
-                messageClient.sendMessage(nodeId, "/ping", payload).await()
+                messageClient.sendMessage(nodeId, PING_PATH, payload).await()
 
                 delay(200)
 
                 withTimeout(1000) {
                     val pong = pongChannel.receive()
 
-                    val offset = pong.t2 - ((pong.t1 + pong.t3) / 2)
+                    val offset = pong.t1 - pong.t2 - ((pong.t3 - pong.t1) / 2)
                     offsets.add(offset)
                     Log.d("TimeSync", "Handshake #$i offset = $offset")
 
                 }
             }
-
+        } catch (e: Exception) {
+            Log.e("TimeSync", "Error during sync", e)
+        } finally {
             _syncTimeValue.value = offsets.takeIf { it.isNotEmpty() }?.average()?.toLong()?.also {
                 Log.d("TimeSync", "Average offset = $it ns")
             }
-
-        } catch (e: Exception) {
-            Log.e("TimeSync", "Error during sync", e)
-            _syncTimeValue.value = null
-        } finally {
             messageClient.removeListener(listener)
             pongChannel.close()
         }
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
-        Log.d(TAG, "Message received: ${messageEvent.path} with ${messageEvent.data}")
         when (messageEvent.path) {
             ACCELEROMETER_DATA_PATH -> {
                 val data = messageEvent.data
                 val accelerometerData = AccelerometerData.fromByteArray(data)
-                Log.d(TAG, "Accelerometer data received: $accelerometerData")
                 _accValue.value = accelerometerData
             }
 
@@ -139,7 +136,6 @@ class WearableStatus @Inject constructor(
             GYROSCOPE_DATA_PATH -> {
                 val data = messageEvent.data
                 val gyroscopeData = GyroscopeData.fromByteArray(data)
-                Log.d(TAG, "Gyroscope data received: $gyroscopeData")
                 _gyroscopeValue.value = gyroscopeData
             }
 
