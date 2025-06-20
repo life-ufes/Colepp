@@ -48,7 +48,8 @@ class MainViewModel @Inject constructor(
             observerClockSkew()
             observerWearSamples()
             observerPolarSamples()
-
+        }
+        viewModelScope.launch {
             //para teste
             polarStatus.hrValue.collectLatest {
                 it?.let { hr ->
@@ -74,7 +75,8 @@ class MainViewModel @Inject constructor(
                     )
                 }
             }
-
+        }
+        viewModelScope.launch {
             polarStatus.accValue.collectLatest { acc ->
                 if (acc != null && currentRecordId.value != null) {
                     recordDatabase.accelerometerPolarDao().insert(
@@ -106,7 +108,8 @@ class MainViewModel @Inject constructor(
                     )
                 }
             }
-
+        }
+        viewModelScope.launch {
             wearableStatus.hrValue.collectLatest { hr ->
                 if (hr != null && currentRecordId.value != null) {
                     recordDatabase.heartRateSmartwatchDao().insert(
@@ -118,7 +121,8 @@ class MainViewModel @Inject constructor(
                     )
                 }
             }
-
+        }
+        viewModelScope.launch {
             wearableStatus.gyroscopeValue.collectLatest { gyro ->
                 if (gyro != null && currentRecordId.value != null) {
                     recordDatabase.gyroscopeSmartwatchDao().insert(
@@ -132,7 +136,8 @@ class MainViewModel @Inject constructor(
                     )
                 }
             }
-
+        }
+        viewModelScope.launch {
             wearableStatus.ambientTemperatureValue.collectLatest { temp ->
                 if (temp != null && currentRecordId.value != null) {
                     recordDatabase.ambientTemperatureSmartwatchDao().insert(
@@ -279,7 +284,7 @@ class MainViewModel @Inject constructor(
                         val timeNanos = SystemClock.elapsedRealtimeNanos()
                         val timeMillis = System.currentTimeMillis()
                         currentRecordId.value?.let { recordId ->
-                            recordDatabase.recordDao().setStarRecording(
+                            recordDatabase.recordDao().setStarRecordingTime(
                                 id = recordId,
                                 starRecordingNanos = timeNanos,
                                 starRecordingMilli = timeMillis
@@ -288,7 +293,15 @@ class MainViewModel @Inject constructor(
                     }
 
                     is RecordingStatus.Finished, RecordingStatus.Error -> {
-
+                        val timeNanos = SystemClock.elapsedRealtimeNanos()
+                        val timeMillis = System.currentTimeMillis()
+                        currentRecordId.value?.let { recordId ->
+                            recordDatabase.recordDao().setStopRecordingTime(
+                                id = recordId,
+                                stopRecordingNanos = timeNanos,
+                                stopRecordingMilli = timeMillis
+                            )
+                        }
                         val mediaOfTimesHR = _polarSamples.value
                             .zipWithNext { a, b -> b.second - a.second }
                             .average()
