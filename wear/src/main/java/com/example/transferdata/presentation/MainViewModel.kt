@@ -5,7 +5,11 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.os.SystemClock
-import android.util.Log
+import androidx.health.services.client.MeasureCallback
+import androidx.health.services.client.data.Availability
+import androidx.health.services.client.data.DataPointContainer
+import androidx.health.services.client.data.DataType
+import androidx.health.services.client.data.DeltaDataType
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -38,7 +42,8 @@ class MainViewModel(
     application: Application
 ) : AndroidViewModel(application),
     MessageClient.OnMessageReceivedListener,
-    SensorEventListener {
+    SensorEventListener,
+    MeasureCallback {
 
     private val messageClient = Wearable.getMessageClient(application)
     private val nodeClient = Wearable.getNodeClient(application)
@@ -51,14 +56,14 @@ class MainViewModel(
     override fun onMessageReceived(messageEvent: MessageEvent) {
         when (messageEvent.path) {
             PING_PATH -> {
-            val t2 = SystemClock.elapsedRealtimeNanos()
-            val data = ByteBuffer.allocate(Long.SIZE_BYTES)
-                .order(ByteOrder.LITTLE_ENDIAN)
-                .putLong(t2)
-                .array()
+                val t2 = SystemClock.elapsedRealtimeNanos()
+                val data = ByteBuffer.allocate(Long.SIZE_BYTES)
+                    .order(ByteOrder.LITTLE_ENDIAN)
+                    .putLong(t2)
+                    .array()
 
-            sendPongMessage(messageEvent.sourceNodeId, messageEvent.data + data)
-        }
+                sendPongMessage(messageEvent.sourceNodeId, messageEvent.data + data)
+            }
 
             INIT_TRANSFER_DATA_PATH -> {
                 startSensorsListener(messageEvent.sourceNodeId)
@@ -72,7 +77,6 @@ class MainViewModel(
 
     private fun sendPongMessage(sourceNodeId: String, bytes: ByteArray) {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d("DataLayerListenerService", "Sending PONG message to node: $sourceNodeId")
             messageClient.sendMessage(
                 sourceNodeId,
                 PONG_PATH,
@@ -106,6 +110,14 @@ class MainViewModel(
             }
 
             Sensor.TYPE_AMBIENT_TEMPERATURE -> {
+                val data = AmbientTemperatureData(
+                    temperature = event.values[0],
+                    timestamp = event.timestamp,
+                )
+                sendAmbientTemperatureData(data)
+            }
+
+            Sensor.TYPE_GYROSCOPE -> {
                 val data = GyroscopeData(
                     x = event.values[0],
                     y = event.values[1],
@@ -113,22 +125,6 @@ class MainViewModel(
                     timestamp = event.timestamp,
                 )
                 sendGyroscopeData(data)
-            }
-
-            Sensor.TYPE_HEART_RATE -> {
-                val data = HeartRateData(
-                    heartRate = event.values[0].toInt(),
-                    timestamp = event.timestamp,
-                )
-                sendHeartRateData(data)
-            }
-
-            Sensor.TYPE_GYROSCOPE -> {
-                val data = AmbientTemperatureData(
-                    temperature = event.values[0],
-                    timestamp = event.timestamp,
-                )
-                sendAmbientTemperatureData(data)
             }
         }
     }
@@ -148,6 +144,22 @@ class MainViewModel(
                 }.addOnFailureListener {
                     // Handle failure to get connected nodes
                 }
+        }
+    }
+
+    override fun onAvailabilityChanged(dataType: DeltaDataType<*, *>, availability: Availability) {
+        // Handle availability changes if needed
+    }
+
+    override fun onDataReceived(data: DataPointContainer) {
+        val heartRateBpm = data.getData(DataType.HEART_RATE_BPM)
+        heartRateBpm.map { dataPoint ->
+            sendHeartRateData(
+                HeartRateData(
+                    heartRate = dataPoint.value.toInt(),
+                    timestamp = dataPoint.timeDurationFromBoot.toNanos()
+                )
+            )
         }
     }
 

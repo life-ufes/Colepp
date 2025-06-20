@@ -8,16 +8,25 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.health.services.client.HealthServices
+import androidx.health.services.client.MeasureClient
+import androidx.health.services.client.data.DataType
+import androidx.health.services.client.getCapabilities
+import androidx.health.services.client.unregisterMeasureCallback
+import androidx.lifecycle.lifecycleScope
 import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
 import com.example.commons.Capabilities.Companion.AMBIENT_TEMPERATURE_CAPABILITY
 import com.example.commons.Capabilities.Companion.GYROSCOPE_CAPABILITY
 import com.example.commons.Capabilities.Companion.HEART_RATE_CAPABILITY
 import com.google.android.gms.wearable.Wearable
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val messageClient by lazy { Wearable.getMessageClient(this) }
     private val capabilityClient by lazy { Wearable.getCapabilityClient(this) }
+    private lateinit var measureClient: MeasureClient
 
     private var accelerometerSensor: Sensor? = null
     private var ambientTemperatureSensor: Sensor? = null
@@ -26,6 +35,26 @@ class MainActivity : ComponentActivity() {
     private lateinit var sensorManager: SensorManager
 
     private val mainViewModel by viewModels<MainViewModel>()
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            lifecycleScope.launch {
+                val capabilities = measureClient.getCapabilities()
+                Log.d(TAG, "Capabilities: $capabilities")
+                if (DataType.HEART_RATE_BPM in capabilities.supportedDataTypesMeasure){
+                    capabilityClient.addLocalCapability(HEART_RATE_CAPABILITY)
+                        .addOnFailureListener { exception ->
+                            exception.printStackTrace()
+                        }
+                        .addOnSuccessListener {
+                            Log.d(TAG, "Local capability $HEART_RATE_CAPABILITY added successfully")
+                        }
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +65,8 @@ class MainActivity : ComponentActivity() {
         ambientTemperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
         heartRateSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
         gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        val healthServicesClient = HealthServices.getClient(applicationContext)
+        measureClient = healthServicesClient.measureClient
 
         setContent {
             WearApp(mainViewModel)
@@ -67,10 +98,15 @@ class MainActivity : ComponentActivity() {
         gyroscopeSensor?.let {
             sensorManager.registerListener(mainViewModel, it, DELAY_FOR_GYROSCOPE_50HZ)
         }
+
+        measureClient.registerMeasureCallback(DataType.HEART_RATE_BPM, mainViewModel)
     }
 
     private fun unregisterSensorListener() {
         sensorManager.unregisterListener(mainViewModel)
+        lifecycleScope.launch {
+            measureClient.unregisterMeasureCallback(DataType.HEART_RATE_BPM, mainViewModel)
+        }
     }
 
     private fun checkSensorAvailability() {
@@ -91,10 +127,13 @@ class MainActivity : ComponentActivity() {
                     }
                     .addOnSuccessListener {
                         Log.d(TAG, "Local capability $capability added successfully")
-                        Log.d(TAG, "Accelerometer sensor available")
                     }
             }
         }
+
+        requestPermissionLauncher.launch(
+            android.Manifest.permission.BODY_SENSORS
+        )
     }
 
     override fun onResume() {

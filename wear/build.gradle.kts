@@ -77,6 +77,8 @@ dependencies {
     implementation(libs.compose.ui.preview)
     implementation(libs.wear.compose.ui.tooling)
 
+    implementation(libs.androidx.health.services)
+
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)

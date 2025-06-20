@@ -34,6 +34,7 @@ horologist = "0.6.23"
 compose-ui-tooling = "1.4.1"
 jetbrainsKotlinJvm = "1.9.0"
 roomVersion = "2.7.1"
+healthServicesVersion = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -81,6 +82,7 @@ wear-compose-ui-tooling = { module = "androidx.wear.compose:compose-ui-tooling",
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomVersion" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomVersion" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomVersion" }
+androidx-health-services = { module = "androidx.health:health-services-client", version.ref = "healthServicesVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -89,4 +91,5 @@ dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 room = { id = "androidx.room", version.ref = "roomVersion" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 
