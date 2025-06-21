@@ -30,10 +30,13 @@ import com.example.commons.CommunicationPaths.Companion.PONG_PATH
 import com.example.commons.CommunicationPaths.Companion.STOP_TRANSFER_DATA_PATH
 import com.example.commons.GyroscopeData
 import com.example.commons.HeartRateData
+import com.example.transferdata.common.WearableState
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -52,6 +55,12 @@ class MainViewModel(
     val sensorsListenerState: LiveData<Boolean> = _sensorsListenerState
 
     private var currentNodeId: String? = null
+
+    private val _hrData = MutableStateFlow<Int?>(null)
+    val hrData = _hrData.asStateFlow()
+
+    private val _wearableState = MutableStateFlow<WearableState>(WearableState.Waiting)
+    val wearableState = _wearableState.asStateFlow()
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
         when (messageEvent.path) {
@@ -87,12 +96,15 @@ class MainViewModel(
 
     private fun startSensorsListener(nodeId: String) {
         currentNodeId = nodeId
+        _wearableState.value = WearableState.Transferring
         _sensorsListenerState.postValue(true)
     }
 
     private fun stopSensorListeners(nodeId: String) {
         if (nodeId == currentNodeId) {
             currentNodeId = null
+            _hrData.value = null
+            _wearableState.value = WearableState.Waiting
             _sensorsListenerState.postValue(false)
         }
     }
@@ -129,6 +141,23 @@ class MainViewModel(
         }
     }
 
+    override fun onAvailabilityChanged(dataType: DeltaDataType<*, *>, availability: Availability) {
+        // Handle availability changes if needed
+    }
+
+    override fun onDataReceived(data: DataPointContainer) {
+        val heartRateBpm = data.getData(DataType.HEART_RATE_BPM)
+        heartRateBpm.map { dataPoint ->
+            sendHeartRateData(
+                HeartRateData(
+                    heartRate = dataPoint.value.toInt(),
+                    timestamp = dataPoint.timeDurationFromBoot.toNanos()
+                )
+            )
+            _hrData.value = dataPoint.value.toInt()
+        }
+    }
+
     private fun sendAccelerometerData(data: AccelerometerData) {
         viewModelScope.launch(Dispatchers.IO) {
             val dataBytes = data.toByteArray()
@@ -144,22 +173,6 @@ class MainViewModel(
                 }.addOnFailureListener {
                     // Handle failure to get connected nodes
                 }
-        }
-    }
-
-    override fun onAvailabilityChanged(dataType: DeltaDataType<*, *>, availability: Availability) {
-        // Handle availability changes if needed
-    }
-
-    override fun onDataReceived(data: DataPointContainer) {
-        val heartRateBpm = data.getData(DataType.HEART_RATE_BPM)
-        heartRateBpm.map { dataPoint ->
-            sendHeartRateData(
-                HeartRateData(
-                    heartRate = dataPoint.value.toInt(),
-                    timestamp = dataPoint.timeDurationFromBoot.toNanos()
-                )
-            )
         }
     }
 

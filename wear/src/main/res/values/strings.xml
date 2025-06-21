@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Transfer data</string>
     <string name="hello_world">From the Square world,\nHello, %1$s!</string>
+    <string name="waiting_for_data">Pronto para fazer a coleta</string>
+    <string name="transferring_data">Transmitindo dados</string>
 </resources>
