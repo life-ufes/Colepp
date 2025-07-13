@@ -18,18 +18,19 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.commons.AccelerometerData
 import com.example.commons.AmbientTemperatureData
 import com.example.commons.CommunicationPaths.Companion.ACCELEROMETER_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.AMBIENT_TEMPERATURE_DATA_PATH
+import com.example.commons.CommunicationPaths.Companion.GRAVITY_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.GYROSCOPE_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.HEART_RATE_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.INIT_TRANSFER_DATA_PATH
+import com.example.commons.CommunicationPaths.Companion.LINEAR_ACCELERATION_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.PING_PATH
 import com.example.commons.CommunicationPaths.Companion.PONG_PATH
 import com.example.commons.CommunicationPaths.Companion.STOP_TRANSFER_DATA_PATH
-import com.example.commons.GyroscopeData
 import com.example.commons.HeartRateData
+import com.example.commons.ThreeAxisData
 import com.example.transferdata.common.WearableState
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
@@ -49,7 +50,6 @@ class MainViewModel(
     MeasureCallback {
 
     private val messageClient = Wearable.getMessageClient(application)
-    private val nodeClient = Wearable.getNodeClient(application)
 
     private val _sensorsListenerState = MutableLiveData<Boolean>()
     val sensorsListenerState: LiveData<Boolean> = _sensorsListenerState
@@ -112,7 +112,7 @@ class MainViewModel(
     override fun onSensorChanged(event: SensorEvent?) {
         when (event?.sensor?.type) {
             Sensor.TYPE_ACCELEROMETER -> {
-                val data = AccelerometerData(
+                val data = ThreeAxisData(
                     x = event.values[0],
                     y = event.values[1],
                     z = event.values[2],
@@ -130,13 +130,33 @@ class MainViewModel(
             }
 
             Sensor.TYPE_GYROSCOPE -> {
-                val data = GyroscopeData(
+                val data = ThreeAxisData(
                     x = event.values[0],
                     y = event.values[1],
                     z = event.values[2],
                     timestamp = event.timestamp,
                 )
                 sendGyroscopeData(data)
+            }
+
+            Sensor.TYPE_LINEAR_ACCELERATION -> {
+                val data = ThreeAxisData(
+                    x = event.values[0],
+                    y = event.values[1],
+                    z = event.values[2],
+                    timestamp = event.timestamp,
+                )
+                sendLinearAccelerationData(data)
+            }
+
+            Sensor.TYPE_GRAVITY -> {
+                val data = ThreeAxisData(
+                    x = event.values[0],
+                    y = event.values[1],
+                    z = event.values[2],
+                    timestamp = event.timestamp,
+                )
+                sendGravityData(data)
             }
         }
     }
@@ -158,21 +178,29 @@ class MainViewModel(
         }
     }
 
-    private fun sendAccelerometerData(data: AccelerometerData) {
+    private fun sendAccelerometerData(data: ThreeAxisData) {
         viewModelScope.launch(Dispatchers.IO) {
             val dataBytes = data.toByteArray()
-            nodeClient.connectedNodes
-                .addOnSuccessListener { nodes ->
-                    for (node in nodes) {
-                        messageClient.sendMessage(
-                            node.id,
-                            ACCELEROMETER_DATA_PATH,
-                            dataBytes
-                        )
-                    }
-                }.addOnFailureListener {
-                    // Handle failure to get connected nodes
-                }
+            currentNodeId?.let { nodeId ->
+                messageClient.sendMessage(
+                    nodeId,
+                    ACCELEROMETER_DATA_PATH,
+                    dataBytes
+                )
+            }
+        }
+    }
+
+    private fun sendLinearAccelerationData(data: ThreeAxisData) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val dataBytes = data.toByteArray()
+            currentNodeId?.let { nodeId ->
+                messageClient.sendMessage(
+                    nodeId,
+                    LINEAR_ACCELERATION_DATA_PATH,
+                    dataBytes
+                )
+            }
         }
     }
 
@@ -202,13 +230,26 @@ class MainViewModel(
         }
     }
 
-    private fun sendGyroscopeData(data: GyroscopeData) {
+    private fun sendGyroscopeData(data: ThreeAxisData) {
         viewModelScope.launch(Dispatchers.IO) {
             val dataBytes = data.toByteArray()
             currentNodeId?.let { nodeId ->
                 messageClient.sendMessage(
                     nodeId,
                     GYROSCOPE_DATA_PATH,
+                    dataBytes
+                )
+            }
+        }
+    }
+
+    private fun sendGravityData(data: ThreeAxisData) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val dataBytes = data.toByteArray()
+            currentNodeId?.let { nodeId ->
+                messageClient.sendMessage(
+                    nodeId,
+                    GRAVITY_DATA_PATH,
                     dataBytes
                 )
             }

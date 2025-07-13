@@ -18,8 +18,10 @@ import androidx.health.services.client.unregisterMeasureCallback
 import androidx.lifecycle.lifecycleScope
 import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
 import com.example.commons.Capabilities.Companion.AMBIENT_TEMPERATURE_CAPABILITY
+import com.example.commons.Capabilities.Companion.GRAVITY_CAPABILITY
 import com.example.commons.Capabilities.Companion.GYROSCOPE_CAPABILITY
 import com.example.commons.Capabilities.Companion.HEART_RATE_CAPABILITY
+import com.example.commons.Capabilities.Companion.LINEAR_ACCELERATION_CAPABILITY
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.launch
 
@@ -29,9 +31,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var measureClient: MeasureClient
 
     private var accelerometerSensor: Sensor? = null
+    private var linearAccelerationSensor: Sensor? = null
     private var ambientTemperatureSensor: Sensor? = null
-    private var heartRateSensor: Sensor? = null
     private var gyroscopeSensor: Sensor? = null
+    private var gravitySensor: Sensor? = null
     private lateinit var sensorManager: SensorManager
 
     private val mainViewModel by viewModels<MainViewModel>()
@@ -62,9 +65,10 @@ class MainActivity : ComponentActivity() {
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        linearAccelerationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
         ambientTemperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
-        heartRateSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
         gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
         val healthServicesClient = HealthServices.getClient(applicationContext)
         measureClient = healthServicesClient.measureClient
 
@@ -89,14 +93,17 @@ class MainActivity : ComponentActivity() {
         accelerometerSensor?.let {
             sensorManager.registerListener(mainViewModel, it, DELAY_FOR_ACCELEROMETER_25HZ)
         }
-        ambientTemperatureSensor?.let {
-            sensorManager.registerListener(mainViewModel, it, SensorManager.SENSOR_DELAY_NORMAL)
+        linearAccelerationSensor?.let {
+            sensorManager.registerListener(mainViewModel, it, DELAY_FOR_ACCELEROMETER_25HZ)
         }
-        heartRateSensor?.let {
+        ambientTemperatureSensor?.let {
             sensorManager.registerListener(mainViewModel, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
         gyroscopeSensor?.let {
             sensorManager.registerListener(mainViewModel, it, DELAY_FOR_GYROSCOPE_50HZ)
+        }
+        gravitySensor?.let {
+            sensorManager.registerListener(mainViewModel, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
 
         measureClient.registerMeasureCallback(DataType.HEART_RATE_BPM, mainViewModel)
@@ -112,9 +119,10 @@ class MainActivity : ComponentActivity() {
     private fun checkSensorAvailability() {
         val sensorMap = mapOf(
             ACCELEROMETER_CAPABILITY to accelerometerSensor,
+            LINEAR_ACCELERATION_CAPABILITY to linearAccelerationSensor,
             AMBIENT_TEMPERATURE_CAPABILITY to ambientTemperatureSensor,
-            HEART_RATE_CAPABILITY to heartRateSensor,
-            GYROSCOPE_CAPABILITY to gyroscopeSensor
+            GYROSCOPE_CAPABILITY to gyroscopeSensor,
+            GRAVITY_CAPABILITY to gravitySensor
         )
 
         sensorMap.forEach { (capability, sensor) ->
@@ -149,9 +157,11 @@ class MainActivity : ComponentActivity() {
 
         val capabilityList = listOf(
             ACCELEROMETER_CAPABILITY,
+            LINEAR_ACCELERATION_CAPABILITY,
             AMBIENT_TEMPERATURE_CAPABILITY,
             HEART_RATE_CAPABILITY,
-            GYROSCOPE_CAPABILITY
+            GYROSCOPE_CAPABILITY,
+            GRAVITY_CAPABILITY
         )
         capabilityList.forEach { capability ->
             capabilityClient.removeLocalCapability(capability)
