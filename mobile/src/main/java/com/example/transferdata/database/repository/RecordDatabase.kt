@@ -24,9 +24,11 @@ import com.example.transferdata.database.repository.dao.RecordDAO
         RecordEntity::class,
         HeartRatePolarEntity::class,
         AccelerometerPolarEntity::class,
+        LinearAccelerationSmartwatchEntity::class,
         AccelerometerSmartwatchEntity::class,
         GyroscopeSmartwatchEntity::class,
         HeartRateSmartwatchEntity::class,
+        GravitySmartwatchEntity::class,
         AmbientTemperatureSmartwatchEntity::class
     ],
     version = 1,
@@ -36,9 +38,11 @@ abstract class RecordDatabase : RoomDatabase() {
     abstract fun recordDao(): RecordDAO
     abstract fun heartRatePolarDao(): HeartRatePolarDao
     abstract fun accelerometerPolarDao(): AccelerometerPolarDao
+    abstract fun linearAccelerationSmartwatchDao(): LinearAccelerationSmartwatchDao
     abstract fun accelerometerSmartwatchDao(): AccelerometerSmartwatchDao
     abstract fun gyroscopeSmartwatchDao(): GyroscopeSmartwatchDao
     abstract fun heartRateSmartwatchDao(): HeartRateSmartwatchDao
+    abstract fun gravitySmartwatchDao(): GravitySmartwatchDao
     abstract fun ambientTemperatureSmartwatchDao(): AmbientTemperatureSmartwatchDao
 
     companion object {

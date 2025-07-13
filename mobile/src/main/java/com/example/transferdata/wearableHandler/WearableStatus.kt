@@ -2,23 +2,22 @@ package com.example.transferdata.wearableHandler
 
 import android.os.SystemClock
 import android.util.Log
-import com.example.commons.AccelerometerData
 import com.example.commons.AmbientTemperatureData
-import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
-import com.example.commons.Capabilities.Companion.AMBIENT_TEMPERATURE_CAPABILITY
-import com.example.commons.Capabilities.Companion.HEART_RATE_CAPABILITY
+import com.example.commons.Capabilities
 import com.example.commons.Capabilities.Companion.WEAR_CAPABILITY
 import com.example.commons.CommunicationPaths.Companion.ACCELEROMETER_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.AMBIENT_TEMPERATURE_DATA_PATH
+import com.example.commons.CommunicationPaths.Companion.GRAVITY_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.GYROSCOPE_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.HEART_RATE_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.INIT_TRANSFER_DATA_PATH
+import com.example.commons.CommunicationPaths.Companion.LINEAR_ACCELERATION_DATA_PATH
 import com.example.commons.CommunicationPaths.Companion.PING_PATH
 import com.example.commons.CommunicationPaths.Companion.PONG_PATH
 import com.example.commons.CommunicationPaths.Companion.START_ACTIVITY_PATH
 import com.example.commons.CommunicationPaths.Companion.STOP_TRANSFER_DATA_PATH
-import com.example.commons.GyroscopeData
 import com.example.commons.HeartRateData
+import com.example.commons.ThreeAxisData
 import com.example.transferdata.common.utils.PongResponse
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.CapabilityInfo
@@ -32,7 +31,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -48,8 +50,19 @@ class WearableStatus @Inject constructor(
     private val _capabilityInfos = MutableStateFlow<Map<String, Set<Node>>>(emptyMap())
     val capabilityInfos = _capabilityInfos.asStateFlow()
 
-    private val _accValue = MutableStateFlow<AccelerometerData?>(null)
+    val wearableNode = _capabilityInfos.map {
+        it[WEAR_CAPABILITY]?.firstOrNull()
+    }.stateIn(
+        CoroutineScope(Dispatchers.Default),
+        started = SharingStarted.Lazily,
+        initialValue = null
+    )
+
+    private val _accValue = MutableStateFlow<ThreeAxisData?>(null)
     val accValue = _accValue.asStateFlow()
+
+    private val _linearAccValue = MutableStateFlow<ThreeAxisData?>(null)
+    val linearAccValue = _linearAccValue.asStateFlow()
 
     private val _hrValue = MutableStateFlow<HeartRateData?>(null)
     val hrValue = _hrValue.asStateFlow()
@@ -58,8 +71,11 @@ class WearableStatus @Inject constructor(
         MutableStateFlow<AmbientTemperatureData?>(null)
     val ambientTemperatureValue = _ambientTemperatureValue.asStateFlow()
 
-    private val _gyroscopeValue = MutableStateFlow<GyroscopeData?>(null)
+    private val _gyroscopeValue = MutableStateFlow<ThreeAxisData?>(null)
     val gyroscopeValue = _gyroscopeValue.asStateFlow()
+
+    private val _gravityValue = MutableStateFlow<ThreeAxisData?>(null)
+    val gravityValue = _gravityValue.asStateFlow()
 
     private val _syncTimeValue = MutableStateFlow<Long?>(null)
     val syncTimeValue = _syncTimeValue.asStateFlow()
@@ -98,7 +114,7 @@ class WearableStatus @Inject constructor(
 
                 delay(200)
 
-                withTimeout(1000) {
+                withTimeout(5000) {
                     val pong = pongChannel.receive()
 
                     val offset = pong.t1 - pong.t2 - ((pong.t3 - pong.t1) / 2)
@@ -122,27 +138,37 @@ class WearableStatus @Inject constructor(
         when (messageEvent.path) {
             ACCELEROMETER_DATA_PATH -> {
                 val data = messageEvent.data
-                val accelerometerData = AccelerometerData.fromByteArray(data)
+                val accelerometerData = ThreeAxisData.fromByteArray(data)
                 _accValue.value = accelerometerData
+            }
+
+            LINEAR_ACCELERATION_DATA_PATH -> {
+                val data = messageEvent.data
+                val linearAccelerationData = ThreeAxisData.fromByteArray(data)
+                _linearAccValue.value = linearAccelerationData
             }
 
             HEART_RATE_DATA_PATH -> {
                 val data = messageEvent.data
                 val heartRateData = HeartRateData.fromByteArray(data)
-                Log.d(TAG, "Heart rate data received: $heartRateData")
                 _hrValue.value = heartRateData
             }
 
             GYROSCOPE_DATA_PATH -> {
                 val data = messageEvent.data
-                val gyroscopeData = GyroscopeData.fromByteArray(data)
+                val gyroscopeData = ThreeAxisData.fromByteArray(data)
                 _gyroscopeValue.value = gyroscopeData
+            }
+
+            GRAVITY_DATA_PATH -> {
+                val data = messageEvent.data
+                val gravityData = ThreeAxisData.fromByteArray(data)
+                _gravityValue.value = gravityData
             }
 
             AMBIENT_TEMPERATURE_DATA_PATH -> {
                 val data = messageEvent.data
                 val ambientTemperatureData = AmbientTemperatureData.fromByteArray(data)
-                Log.d(TAG, "Ambient temperature data received: $ambientTemperatureData")
                 _ambientTemperatureValue.value = ambientTemperatureData
             }
         }
@@ -183,17 +209,8 @@ class WearableStatus @Inject constructor(
         }
     }
 
-    private fun getAllNodesWithCapabilities(): Set<Node> {
-        return with(capabilityInfos.value) {
-            (getOrDefault(ACCELEROMETER_CAPABILITY, emptySet())
-                    union getOrDefault(HEART_RATE_CAPABILITY, emptySet())
-                    union getOrDefault(AMBIENT_TEMPERATURE_CAPABILITY, emptySet())
-                    union getOrDefault(GYROSCOPE_DATA_PATH, emptySet()))
-        }
-    }
-
     fun startTransferData() {
-        getAllNodesWithCapabilities()
+        Capabilities.getNodeCapabilities(capabilityInfos.value)
             .let { nodes ->
                 nodes.forEach { node ->
                     sendStartTransferDataMessage(node.id)
@@ -213,7 +230,7 @@ class WearableStatus @Inject constructor(
     }
 
     fun stopTransferData() {
-        getAllNodesWithCapabilities()
+        Capabilities.getNodeCapabilities(capabilityInfos.value)
             .let { nodes ->
                 nodes.forEach { node ->
                     sendStopTransferDataMessage(node.id)
