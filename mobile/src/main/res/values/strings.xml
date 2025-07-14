@@ -7,25 +7,49 @@
     <string name="create_new_recording">Nova captura</string>
     <string name="description_label">Descrição</string>
     <string name="name_label">Nome</string>
-    <string name="btn_create_new_recording">Iniciar</string>
+    <string name="btn_create_new_recording">Criar</string>
 
     <!--  Recording Screen  -->
     <string name="new_recording">Iniciar captura</string>
     <string name="start_recording">Iniciar</string>
-    <string name="smart_watch">SmartWatch</string>
-    <string name="polar">Polar %s</string>
+    <string name="finish_recording">Finalizar</string>
+    <string name="smart_watch">SmartWatch: %s</string>
+    <string name="polar">Polar: %s</string>
     <string name="bluetooth_off">O Bluetooth esta desligado, ative-o para pode conectar aos dispositivos.</string>
     <string name="connect_devices_to_transfer_data">Conecte o dispositivo ao aparelho para poder salvar os dados.</string>
     <string name="smart_watch_only_polar_on">Conecte ao SmartWatch para pode capturar os dados.</string>
     <string name="only_wear_on">Conectado ao SmartWatch com o app de transferência desativado ou sem a capacidade de capturar os dados do acelerômetro. Clique para verificar.</string>
     <string name="ready_to_record">Tudo certo</string>
+    <string name="polar_heart_rate">Polar %s bpm</string>
+    <string name="smart_watch_heart_rate">Smartwatch %s bpm</string>
+    <string name="no_heart_rate">-</string>
+    <string name="battery_level">Bateria: %s%%</string>
 
     <!--  Home Screen  -->
     <string name="home_toolbar_title">Minhas capturas</string>
     <string name="home_bottom_bar_home">Home</string>
     <string name="home_bottom_bar_guidance">Instruções</string>
+    <string name="home_delete_record_dialog_title">Tem certeza que deseja excluir a captura: %s?</string>
+    <string name="home_delete_record_dialog_message">Se ela for excluida não tera como restaurar.</string>
+    <string name="home_delete_record_dialog_confirm_button">Excluir</string>
+    <string name="home_delete_record_dialog_cancel_button">Cancelar</string>
+    <string name="saving_dataset">Salvando os dados</string>
+    <string name="error_saving_dataset">Ocorreu um erro no salvamento do arquivo</string>
+    <string name="error_saving_dataset_message">Erro: %s</string>
+    <string name="dataset_saved_successfully">Dataset criado com sucesso!</string>
+    <string name="dataset_saved_successfully_message">Arquivo criado em: %s</string>
+    <string name="ok">Ok</string>
+    <string name="close">Fechar</string>
 
     <!--  Edit Record Screen  -->
     <string name="edit_record">Editar captura</string>
     <string name="btn_save_record_edited_recording">Salvar</string>
+
+    <!--  Record Detail Screen  -->
+    <string name="record_detail">Detalhes da captura</string>
+    <string name="record_detail_description">Descrição:</string>
+    <string name="record_detail_initial_date">Data e horário de início:</string>
+    <string name="record_detail_time_duration">Tempo de duração:</string>
+    <string name="heart_rate_unit">bpm</string>
+    <string name="toast_error_sharing_file">Não foi possivel compartilhar o arquivo!</string>
 </resources>
