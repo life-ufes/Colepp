@@ -4,16 +4,18 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.commons.AccelerometerData
+import com.example.commons.ThreeAxisData
 import com.example.transferdata.bluetoothHandler.BluetoothStatus
 import com.example.transferdata.common.utils.DevicesStatus
 import com.example.transferdata.common.utils.RecordingStatus
 import com.example.transferdata.database.model.AccelerometerPolarEntity
 import com.example.transferdata.database.model.AccelerometerSmartwatchEntity
 import com.example.transferdata.database.model.AmbientTemperatureSmartwatchEntity
+import com.example.transferdata.database.model.GravitySmartwatchEntity
 import com.example.transferdata.database.model.GyroscopeSmartwatchEntity
 import com.example.transferdata.database.model.HeartRatePolarEntity
 import com.example.transferdata.database.model.HeartRateSmartwatchEntity
+import com.example.transferdata.database.model.LinearAccelerationSmartwatchEntity
 import com.example.transferdata.database.model.RecordEntity
 import com.example.transferdata.database.repository.RecordDatabase
 import com.example.transferdata.polarHandler.PolarStatus
@@ -110,6 +112,21 @@ class MainViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            wearableStatus.linearAccValue.collectLatest { linearAcc ->
+                if (linearAcc != null && currentRecordId.value != null) {
+                    recordDatabase.linearAccelerationSmartwatchDao().insert(
+                        LinearAccelerationSmartwatchEntity(
+                            x = linearAcc.x,
+                            y = linearAcc.y,
+                            z = linearAcc.z,
+                            timestamp = linearAcc.timestamp,
+                            recordId = currentRecordId.value!!
+                        )
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
             wearableStatus.hrValue.collectLatest { hr ->
                 if (hr != null && currentRecordId.value != null) {
                     recordDatabase.heartRateSmartwatchDao().insert(
@@ -144,6 +161,21 @@ class MainViewModel @Inject constructor(
                         AmbientTemperatureSmartwatchEntity(
                             temperature = temp.temperature,
                             timestamp = temp.timestamp,
+                            recordId = currentRecordId.value!!
+                        )
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            wearableStatus.gravityValue.collectLatest { gravity ->
+                if (gravity != null && currentRecordId.value != null) {
+                    recordDatabase.gravitySmartwatchDao().insert(
+                        GravitySmartwatchEntity(
+                            x = gravity.x,
+                            y = gravity.y,
+                            z = gravity.z,
+                            timestamp = gravity.timestamp,
                             recordId = currentRecordId.value!!
                         )
                     )
@@ -206,7 +238,7 @@ class MainViewModel @Inject constructor(
             initialValue = false
         )
 
-    fun recordingButton() {
+    fun recordingButton(title: String, description: String) {
         if (_recordingStatus.value == RecordingStatus.Ready) {
             wearableStatus.startTransferData()
             polarStatus.startListeners()
@@ -216,8 +248,8 @@ class MainViewModel @Inject constructor(
                     val clockSkew = wearableStatus.syncTimeValue.value ?: 0L
                     recordDatabase.recordDao().insert(
                         RecordEntity(
-                            title = "Titulo tal",
-                            description = "Descricao tal",
+                            title = title,
+                            description = description,
                             clockSkewSmartwatchNanos = clockSkew
                         )
                     ).run {
@@ -399,7 +431,7 @@ class MainViewModel @Inject constructor(
     private val _timeOfFirstWearSample = MutableStateFlow<Long?>(null)
     val timeOfFirstWearSample = _timeOfFirstWearSample.asStateFlow()
 
-    private val _wearSamples = MutableStateFlow<List<Pair<AccelerometerData, Long>>>(emptyList())
+    private val _wearSamples = MutableStateFlow<List<Pair<ThreeAxisData, Long>>>(emptyList())
     val wearSamples = _wearSamples.asStateFlow()
 
     companion object {
