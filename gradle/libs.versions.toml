@@ -38,6 +38,7 @@ gsonVersion = "2.10.1"
 healthServicesVersion = "1.0.0"
 protobufJavaliteVersion = "3.17.3"
 commonsIoVersion = "2.10.0"
+vicoVersion = "2.1.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -89,6 +90,8 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gsonVersi
 androidx-health-services = { module = "androidx.health:health-services-client", version.ref = "healthServicesVersion" }
 protobuf-javalite = { group = "com.google.protobuf", name = "protobuf-javalite", version.ref = "protobufJavaliteVersion" }
 commons-io = { group = "commons-io", name = "commons-io", version.ref = "commonsIoVersion" }
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vicoVersion" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vicoVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
