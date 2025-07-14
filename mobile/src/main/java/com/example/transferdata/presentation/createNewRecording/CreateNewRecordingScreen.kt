@@ -19,6 +19,7 @@ import com.example.transferdata.R
 import com.example.transferdata.common.composeUI.DefaultButton
 import com.example.transferdata.common.composeUI.LabeledTextField
 import com.example.transferdata.common.composeUI.Toolbar
+import com.example.transferdata.common.composeUI.arrangementLastItemOnBottom
 import com.example.transferdata.common.utils.Size
 
 @Composable
@@ -71,21 +72,29 @@ private fun ScreenContent(
 ) {
     Column(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(Size.size05),
-        verticalArrangement = Arrangement.spacedBy(Size.size03)
+            .fillMaxSize()
+            .padding(horizontal = Size.size05)
+            .padding(bottom = Size.size09),
+        verticalArrangement = arrangementLastItemOnBottom
     ) {
-        LabeledTextField(
-            value = nameValue,
-            label = stringResource(R.string.name_label),
-            onValueChange = onNameValueChange,
-        )
-        LabeledTextField(
-            value = descriptionValue,
-            label = stringResource(R.string.description_label),
-            onValueChange = onDescriptionValueChange,
-        )
-        Spacer(modifier = Modifier.weight(1f))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Size.size05)
+                .padding(bottom = Size.size09),
+            verticalArrangement = Arrangement.spacedBy(Size.size03)
+        ) {
+            LabeledTextField(
+                value = nameValue,
+                label = stringResource(R.string.name_label),
+                onValueChange = onNameValueChange,
+            )
+            LabeledTextField(
+                value = descriptionValue,
+                label = stringResource(R.string.description_label),
+                onValueChange = onDescriptionValueChange,
+            )
+        }
         DefaultButton(
             text = stringResource(R.string.btn_create_new_recording),
             onClick = createdNewRecording,
