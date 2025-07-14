@@ -25,6 +25,7 @@ fun CardOfWearable(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
+    content: @Composable () -> Unit = { }
 ) {
     Column(
         modifier = modifier
@@ -50,6 +51,7 @@ fun CardOfWearable(
             text = subtitle,
             style = TextStyles.TextS
         )
+        content()
     }
 }
 
