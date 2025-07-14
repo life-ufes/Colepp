@@ -29,6 +29,9 @@ class PolarStatus @Inject constructor(
     private val _hrValue = MutableStateFlow<Pair<Int, Long>?>(null)
     val hrValue = _hrValue.asStateFlow()
 
+    private val _batteryLevel = MutableStateFlow<Int?>(null)
+    val batteryLevel = _batteryLevel.asStateFlow()
+
     private val _accValue =
         MutableStateFlow<PolarAccelerometerData.PolarAccelerometerDataSample?>(null)
     val accValue = _accValue.asStateFlow()
@@ -147,6 +150,7 @@ class PolarStatus @Inject constructor(
         }
 
         override fun batteryLevelReceived(identifier: String, level: Int) {
+            _batteryLevel.value = level
             Log.d(TAG, "BATTERY LEVEL: $level")
         }
     }
