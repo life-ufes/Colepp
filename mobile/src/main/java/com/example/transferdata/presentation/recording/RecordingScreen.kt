@@ -28,29 +28,30 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.commons.AccelerometerData
 import com.example.transferdata.MainViewModel
 import com.example.transferdata.R
 import com.example.transferdata.common.composeUI.CardOfWearable
 import com.example.transferdata.common.composeUI.DefaultButton
 import com.example.transferdata.common.composeUI.Toolbar
+import com.example.transferdata.common.composeUI.arrangementLastItemOnBottom
 import com.example.transferdata.common.utils.DevicesStatus
 import com.example.transferdata.common.utils.RecordingStatus
 import com.example.transferdata.common.utils.Size
-import java.util.Calendar
+import com.example.transferdata.common.utils.TextStyles
+import com.example.transferdata.common.utils.orDefault
+import com.example.transferdata.common.utils.toCronometerFormat
+import com.google.android.gms.wearable.Node
+import com.polar.sdk.api.model.PolarDeviceInfo
 
 @Composable
 fun RecordingScreen(
     viewModel: RecordingViewModel = hiltViewModel(),
     mainViewModel: MainViewModel,
     onBackPressed: () -> Unit,
-    startRecording: () -> Unit,
-    stopRecording: () -> Unit,
     setKeepScreenFlag: (Boolean) -> Unit
 ) {
     val devicesStatus = mainViewModel.devicesStatus.collectAsState()
@@ -59,18 +60,10 @@ fun RecordingScreen(
     val preparingTime = mainViewModel.preparingTime.collectAsState()
     val chronometerTime = mainViewModel.chronometer.collectAsState()
     val hrPolarValue = mainViewModel.polarStatus.hrValue.collectAsState()
-    val accPolarValue = mainViewModel.polarStatus.accValue.collectAsState()
-    val hrWearValue = mainViewModel.wearableStatus.hrValue.collectAsState()
-    val gyroscopeWearValue = mainViewModel.wearableStatus.gyroscopeValue.collectAsState()
-    val ambTempValue = mainViewModel.wearableStatus.ambientTemperatureValue.collectAsState()
-    val accWearValue = mainViewModel.wearableStatus.accValue.collectAsState()
-
-    val initialTime = mainViewModel.initTime.collectAsState()
-    val initialHeartRateTime = mainViewModel.timeOfFirstPolarSample.collectAsState()
-    val initialWearTime = mainViewModel.timeOfFirstWearSample.collectAsState()
-    val polarSamples = mainViewModel.polarSamples.collectAsState()
-    val wearSamples = mainViewModel.wearSamples.collectAsState()
-
+    val hrSmartwatchValue = mainViewModel.wearableStatus.hrValue.collectAsState()
+    val polarInfo = mainViewModel.polarStatus.device.collectAsState()
+    val polarBatteryLevel = mainViewModel.polarStatus.batteryLevel.collectAsState()
+    val wearableInfo = mainViewModel.wearableStatus.wearableNode.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -123,19 +116,21 @@ fun RecordingScreen(
                 recordingStatus = recordingStatus.value,
                 preparingTime = preparingTime.value,
                 chronometerTime = chronometerTime.value,
-                heartRate = hrPolarValue.value?.first,
-                recordingButtonClick = mainViewModel::recordingButton,
+                heartRatePolar = hrPolarValue.value?.first,
+                heartRateSmartwatch = hrSmartwatchValue.value?.heartRate,
+                recordingButtonClick = {
+                    mainViewModel.recordingButton(
+                        viewModel.recordTitle,
+                        viewModel.recordDescription
+                    )
+                },
                 devicesStatus = devicesStatus.value,
                 buttonEnabled = buttonEnabled.value,
+                polarInfo = polarInfo.value,
+                polarBatteryLevel = polarBatteryLevel.value,
+                wearableInfo = wearableInfo.value,
                 sendMessageToStartWearApp = mainViewModel.wearableStatus::sendStarWearAppMessage,
-                connectOnPolar = mainViewModel.polarStatus::connect,
-
-                // para teste
-                initialTime = initialTime.value,
-                initialHeartRateTime = initialHeartRateTime.value,
-                initialWearTime = initialWearTime.value,
-                polarSamples = polarSamples.value,
-                wearSamples = wearSamples.value
+                connectOnPolar = mainViewModel.polarStatus::connect
             )
         }
     }
@@ -147,68 +142,93 @@ private fun ScreenContent(
     recordingStatus: RecordingStatus,
     preparingTime: Long,
     chronometerTime: Long,
-    heartRate: Int?,
+    heartRatePolar: Int?,
+    heartRateSmartwatch: Int?,
     recordingButtonClick: () -> Unit,
     devicesStatus: DevicesStatus,
     sendMessageToStartWearApp: () -> Unit,
     connectOnPolar: () -> Unit,
+    polarInfo: PolarDeviceInfo?,
+    polarBatteryLevel: Int?,
+    wearableInfo: Node?,
     buttonEnabled: Boolean,
-
-    // para teste
-    initialTime: Long?,
-    initialHeartRateTime: Long?,
-    initialWearTime: Long?,
-    polarSamples: List<Pair<Int, Long>>,
-    wearSamples: List<Pair<AccelerometerData, Long>>
 ) {
     val scroll = rememberScrollState()
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scroll)
-                .padding(horizontal = Size.size05),
-            verticalArrangement = Arrangement.spacedBy(Size.size03),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = Size.size05)
+                .padding(bottom = Size.size09),
+            verticalArrangement = arrangementLastItemOnBottom
         ) {
-            Text(
-                text = chronometerTime.toCronometerFormat(),
-                fontSize = 40.sp
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Size.size05),
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(scroll),
+                verticalArrangement = Arrangement.spacedBy(Size.size03),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_heart),
-                    contentDescription = null,
-                )
                 Text(
-                    text = heartRate?.toString() ?: "-",
-                    fontSize = 40.sp,
+                    text = chronometerTime.toCronometerFormat(),
+                    style = TextStyles.Chronometer
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Size.size05),
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        if (heartRateSmartwatch == null && heartRatePolar == null) {
+                            Text(
+                                text = stringResource(R.string.no_heart_rate),
+                                style = TextStyles.TextL
+                            )
+                        }
+                        if (heartRatePolar != null) {
+                            Text(
+                                text = stringResource(R.string.polar_heart_rate, heartRatePolar),
+                                style = TextStyles.TextL
+                            )
+                        }
+                        if (heartRateSmartwatch != null) {
+                            Text(
+                                text = stringResource(
+                                    R.string.smart_watch_heart_rate,
+                                    heartRateSmartwatch
+                                ),
+                                style = TextStyles.TextL
+                            )
+                        }
+                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_heart),
+                        contentDescription = null,
+                    )
+                }
+                CardOfSmartWatch(
+                    modifier = Modifier.fillMaxWidth(),
+                    devicesStatus = devicesStatus,
+                    wearableInfo = wearableInfo,
+                    sendMessageToStartWearApp = sendMessageToStartWearApp,
+                )
+                CardOfPolar(
+                    modifier = Modifier.fillMaxWidth(),
+                    devicesStatus = devicesStatus,
+                    polarInfo = polarInfo,
+                    batteryLevel = polarBatteryLevel,
+                    connectOnPolar = connectOnPolar
                 )
             }
-//            Spacer(modifier = Modifier.weight(1f))
-            // Temporario para teste
-            DataScreen(
-                initialTime = initialTime,
-                initialHeartRateTime = initialHeartRateTime,
-                initialWearTime = initialWearTime,
-                polarSamples = polarSamples,
-                wearSamples = wearSamples
-            )
-            CardOfSmartWatch(
-                modifier = Modifier.fillMaxWidth(),
-                devicesStatus = devicesStatus,
-                sendMessageToStartWearApp = sendMessageToStartWearApp,
-            )
-            CardOfPolar(
-                modifier = Modifier.fillMaxWidth(),
-                devicesStatus = devicesStatus,
-                connectOnPolar = connectOnPolar
-            )
             DefaultButton(
-                text = stringResource(R.string.start_recording),
+                text = stringResource(
+                    if (recordingStatus is RecordingStatus.Ready) {
+                        R.string.start_recording
+                    } else {
+                        R.string.finish_recording
+                    }
+                ),
                 onClick = {
                     recordingButtonClick()
                 },
@@ -231,74 +251,6 @@ private fun ScreenContent(
     }
 }
 
-//temporario
-@Composable
-private fun DataScreen(
-    initialTime: Long?,
-    initialHeartRateTime: Long?,
-    initialWearTime: Long?,
-    polarSamples: List<Pair<Int, Long>>,
-    wearSamples: List<Pair<AccelerometerData, Long>>
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(text = "Initial Time: ${initialTime?.toShow() ?: "N/A"}")
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Initial Heart Rate Time: ${initialHeartRateTime?.toShow() ?: "N/A"}",
-                modifier = Modifier
-                    .weight(1f)
-            )
-            Text(
-                text = "Initial Wear Time: ${initialWearTime?.toShow() ?: "N/A"}",
-                modifier = Modifier
-                    .weight(1f)
-            )
-
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(Size.size02, Alignment.Top),
-            ) {
-                polarSamples.takeLast(15).forEach { sample ->
-                    Text(text = "HR: ${sample.first}, T: ${sample.second.toShow()}")
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(Size.size02, Alignment.Top),
-            ) {
-                wearSamples.takeLast(2).forEach { sample ->
-                    Text(text = "data: ${sample.first} T: ${sample.second.toShow()}")
-                }
-            }
-        }
-    }
-}
-
-private fun Long.toShow(): String {
-    Calendar.getInstance().apply {
-        timeInMillis = this@toShow
-    }.let { calendar ->
-        return String.format(
-            "%02d:%02d:%04d",
-            calendar.get(Calendar.MINUTE),
-            calendar.get(Calendar.SECOND),
-            calendar.get(Calendar.MILLISECOND)
-        )
-    }
-}
-
 @Composable
 private fun PreparingCountScreen(
     modifier: Modifier = Modifier,
@@ -312,7 +264,7 @@ private fun PreparingCountScreen(
     ) {
         Text(
             text = time.toString(),
-            fontSize = 40.sp
+            style = TextStyles.Chronometer
         )
     }
 }
@@ -321,6 +273,7 @@ private fun PreparingCountScreen(
 private fun CardOfSmartWatch(
     modifier: Modifier = Modifier,
     devicesStatus: DevicesStatus,
+    wearableInfo: Node?,
     sendMessageToStartWearApp: () -> Unit,
 ) {
     Log.d("TAG", "CardOfSmartWatch: $devicesStatus")
@@ -334,7 +287,7 @@ private fun CardOfSmartWatch(
     }
     CardOfWearable(
         modifier = modifier,
-        title = stringResource(R.string.smart_watch),
+        title = stringResource(R.string.smart_watch, wearableInfo?.displayName.orDefault()),
         subtitle = subtitle,
         onClick = {
             if (devicesStatus is DevicesStatus.OnlyWearOn || devicesStatus is DevicesStatus.WearAndPolarOn) {
@@ -348,6 +301,8 @@ private fun CardOfSmartWatch(
 private fun CardOfPolar(
     modifier: Modifier = Modifier,
     devicesStatus: DevicesStatus,
+    polarInfo: PolarDeviceInfo?,
+    batteryLevel: Int?,
     connectOnPolar: () -> Unit
 ) {
     val bluetoothState = (devicesStatus.code and DevicesStatus.BLUETOOTH_BIT) != 0
@@ -359,7 +314,7 @@ private fun CardOfPolar(
     }
     CardOfWearable(
         modifier = modifier,
-        title = stringResource(R.string.polar),
+        title = stringResource(R.string.polar, polarInfo?.name.orDefault()),
         subtitle = subtitle,
         onClick = {
 //            if (devicesStatus is DevicesStatus.OnlyBluetoothOn
@@ -369,19 +324,14 @@ private fun CardOfPolar(
             connectOnPolar()
 //            }
         },
-    )
-}
-
-private fun Long.toCronometerFormat(): String {
-    val miliSeconds = this % 1000 / 100
-    val seconds = this / 1000
-    val minutes = seconds / 60
-    return String.format(
-        "%02d:%02d.%d",
-        minutes % 60,
-        seconds % 60,
-        miliSeconds
-    )
+    ) {
+        batteryLevel?.let {
+            Text(
+                text = stringResource(R.string.battery_level, it),
+                style = TextStyles.TextS
+            )
+        }
+    }
 }
 
 @Preview(showBackground = true)
@@ -389,28 +339,17 @@ private fun Long.toCronometerFormat(): String {
 private fun ScreenContentPreview() {
     ScreenContent(
         preparingTime = 1,
-        heartRate = 80,
+        heartRatePolar = 80,
+        heartRateSmartwatch = 83,
         chronometerTime = 1234567L,
         recordingButtonClick = { },
         recordingStatus = RecordingStatus.Running,
         devicesStatus = DevicesStatus.ReadyToRecord,
         buttonEnabled = true,
+        polarInfo = null,
+        polarBatteryLevel = 60,
+        wearableInfo = null,
         sendMessageToStartWearApp = { },
         connectOnPolar = { }
-
-        // para teste
-        , initialTime = 123123123L,
-        initialHeartRateTime = 123123123L,
-        initialWearTime = 123123123L,
-        polarSamples = listOf(
-            Pair(80, 123123123L),
-            Pair(82, 123123124L),
-            Pair(85, 123123125L)
-        ),
-        wearSamples = listOf(
-            Pair(AccelerometerData(0f, 0f, 0f, 123123123L), 123123123L),
-            Pair(AccelerometerData(1f, 1f, 1f, 123123124L), 123123124L),
-            Pair(AccelerometerData(2f, 2f, 2f, 123123125L), 123123125L)
-        )
     )
 }
