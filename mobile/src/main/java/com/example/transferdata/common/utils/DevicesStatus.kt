@@ -1,7 +1,7 @@
 package com.example.transferdata.common.utils
 
 import android.util.Log
-import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
+import com.example.commons.Capabilities
 import com.example.commons.Capabilities.Companion.WEAR_CAPABILITY
 import com.google.android.gms.wearable.Node
 
@@ -55,7 +55,7 @@ sealed class DevicesStatus(val code: Int) {
             if (polarState) state = state or POLAR_BIT
             Log.d("TAG", "getRecordingStatus: polarState: $polarState, state: ${state.toString(2)}")
             val wearCapability = wearCapabilities.getOrDefault(WEAR_CAPABILITY, emptySet())
-            val transferCapability = wearCapabilities.getOrDefault(ACCELEROMETER_CAPABILITY, emptySet())
+            val transferCapability = Capabilities.getNodeCapabilities(wearCapabilities)
 
             if((wearCapability intersect transferCapability).isNotEmpty()) {
                 state = state or WEAR_WITH_TRANSFER_CAPABILITY_BIT
