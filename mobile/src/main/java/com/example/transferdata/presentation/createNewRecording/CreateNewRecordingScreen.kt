@@ -2,7 +2,6 @@ package com.example.transferdata.presentation.createNewRecording
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.transferdata.MainViewModel
 import com.example.transferdata.R
 import com.example.transferdata.common.composeUI.DefaultButton
 import com.example.transferdata.common.composeUI.LabeledTextField
@@ -25,8 +23,7 @@ import com.example.transferdata.common.utils.Size
 @Composable
 fun CreateNewRecording(
     viewModel: CreateNewRecordingViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel,
-    createdNewRecording: () -> Unit,
+    createdNewRecording: (String, String?) -> Unit,
     onBackPressed: () -> Unit
 ) {
     val nameValue = viewModel.nameValue.collectAsState()
@@ -53,7 +50,11 @@ fun CreateNewRecording(
                 onDescriptionValueChange = viewModel::onDescriptionValueChange,
                 descriptionValue = descriptionValue.value,
                 onNameValueChange = viewModel::onNameValueChange,
-                createdNewRecording = createdNewRecording,
+                createdNewRecording = {
+                    createdNewRecording(
+                        nameValue.value,
+                        descriptionValue.value.takeIf { it.isNotBlank() })
+                },
                 buttonEnabled = buttonEnabled.value,
             )
         }
