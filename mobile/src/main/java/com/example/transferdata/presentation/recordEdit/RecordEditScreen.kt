@@ -80,7 +80,7 @@ fun RecordEditScreen(
                         nameValue = titleEdit.value,
                         onNameValueChange = viewModel::updateTitle,
                         descriptionValue = descriptionEdit.value,
-                        onDescriptionValueChange = viewModel::updateTitle,
+                        onDescriptionValueChange = viewModel::updateDescription,
                         createdNewRecording = {
                             viewModel.setContent(onSave)
                         },
