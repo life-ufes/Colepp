@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.example.transferdata.R
 import com.example.transferdata.common.utils.Size.size03
 import com.example.transferdata.common.utils.Size.size05
+import com.example.transferdata.common.utils.TextStyles
 
 @Composable
 fun DefaultButton(
@@ -31,7 +32,7 @@ fun DefaultButton(
     icon: Painter? = null,
     onClick: () -> Unit,
     enabled: Boolean = true,
-    textStyle: TextStyle = TextStyle.Default
+    textStyle: TextStyle = TextStyles.TextSBoldWithoutColor
 ) {
     Button(
         onClick = { onClick() },

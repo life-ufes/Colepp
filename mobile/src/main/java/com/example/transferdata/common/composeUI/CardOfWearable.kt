@@ -13,11 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.transferdata.R
 import com.example.transferdata.common.utils.Size
+import com.example.transferdata.common.utils.TextStyles
 
 @Composable
 fun CardOfWearable(
@@ -44,10 +44,11 @@ fun CardOfWearable(
     ) {
         Text(
             text = title,
-            fontWeight = FontWeight.Bold,
+            style = TextStyles.TitleS
         )
         Text(
-            text = subtitle
+            text = subtitle,
+            style = TextStyles.TextS
         )
     }
 }

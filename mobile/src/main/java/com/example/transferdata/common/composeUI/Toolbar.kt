@@ -12,6 +12,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.transferdata.R
+import com.example.transferdata.common.utils.TextStyles
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,7 +22,7 @@ fun Toolbar(
     hasCloseIcon: Boolean = true,
     onBackPressed: () -> Unit = {},
     onClosePressed: () -> Unit = {},
-    backgroundColor: Color = colorResource(id = R.color.primary_color_light),
+    backgroundColor: Color = colorResource(id = R.color.toolbar_background),
     textColor : Color = Color.Black
 ) {
     CenterAlignedTopAppBar(
@@ -29,7 +30,7 @@ fun Toolbar(
             title?.let {
                 Text(
                     text = it,
-                    color = textColor
+                    style = TextStyles.TopBarTitle.copy(color = textColor)
                 )
             }
         },
