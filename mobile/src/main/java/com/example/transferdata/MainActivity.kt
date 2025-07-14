@@ -4,9 +4,11 @@ import BluetoothStateReceiver
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -17,14 +19,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
 import com.example.commons.Capabilities.Companion.AMBIENT_TEMPERATURE_CAPABILITY
+import com.example.commons.Capabilities.Companion.GRAVITY_CAPABILITY
 import com.example.commons.Capabilities.Companion.GYROSCOPE_CAPABILITY
 import com.example.commons.Capabilities.Companion.HEART_RATE_CAPABILITY
+import com.example.commons.Capabilities.Companion.LINEAR_ACCELERATION_CAPABILITY
 import com.example.commons.Capabilities.Companion.WEAR_CAPABILITY
+import com.example.transferdata.common.utils.formatToValidFileName
 import com.example.transferdata.database.repository.RecordDatabase
-import com.example.transferdata.dataset.DatasetGenerator
 import com.example.transferdata.navigation.MainNavHost
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.Wearable
@@ -48,11 +53,11 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var recordDatabase: RecordDatabase
-    private lateinit var datasetGenerator: DatasetGenerator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        datasetGenerator = DatasetGenerator(recordDatabase)
+
+        window.statusBarColor = resources.getColor(R.color.toolbar_background, theme)
         setContent {
             MaterialTheme {
                 Surface(
@@ -61,10 +66,10 @@ class MainActivity : ComponentActivity() {
                 ) {
                     MainNavHost(
                         onBackPressed = { this@MainActivity.onBackPressedDispatcher.onBackPressed() },
-                        onClosePressed = { finish() },
                         mainViewModel = mainViewModel,
                         setKeepScreenFlag = ::setKeepScreenFlag,
                         createDatasetFile = ::createDatasetFile,
+                        shareFile = ::shareFile
                     )
                 }
             }
@@ -90,20 +95,28 @@ class MainActivity : ComponentActivity() {
 
         messageClient.addListener(mainViewModel.wearableStatus)
         registerCapabilityListener()
+        // testar se o problema de não carregar a tela acontece apenas no meu POCO X3
+        // ou se é um problema geral
+        window.decorView.post {
+            window.decorView.invalidate()
+            window.decorView.requestLayout()
+        }
     }
 
     private fun registerCapabilityListener() {
         capabilityClient.addListener(
             mainViewModel.wearableStatus,
-            Uri.parse("wear://"),
+            "wear://".toUri(),
             CapabilityClient.FILTER_REACHABLE
         )
         setCapabilitiesListeners(
             listOf(
                 WEAR_CAPABILITY,
                 ACCELEROMETER_CAPABILITY,
+                LINEAR_ACCELERATION_CAPABILITY,
                 HEART_RATE_CAPABILITY,
                 GYROSCOPE_CAPABILITY,
+                GRAVITY_CAPABILITY,
                 AMBIENT_TEMPERATURE_CAPABILITY
             )
         )
@@ -135,7 +148,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun createDatasetFile(recordId: Long) {
+    private fun createDatasetFile(recordId: Long, onFileCreated: (File) -> Unit) {
         lifecycleScope.launch {
             val record = recordDatabase.recordDao().getById(recordId)
             if (record == null) {
@@ -147,9 +160,30 @@ class MainActivity : ComponentActivity() {
                 return@launch
             }
 
-            val file = File(applicationContext.filesDir, "${record.title}_${System.currentTimeMillis()}.csv")
-            Log.d(TAG, "Creating dataset file: ${file.absolutePath}")
-            datasetGenerator.generateDataset(recordId,file)
+            val downloadsFile =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            downloadsFile.mkdirs()
+            val file = File(
+                downloadsFile,
+                "${record.title.formatToValidFileName()}_${System.currentTimeMillis()}.csv"
+            )
+
+            onFileCreated(file)
+        }
+    }
+
+    private fun shareFile(uri: Uri) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            type = "text/csv"
+        }
+        try {
+            startActivity(Intent.createChooser(intent, null))
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sharing file: ${e.message}")
+            Toast.makeText(this, getString(R.string.toast_error_sharing_file), Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
