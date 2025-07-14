@@ -1,6 +1,5 @@
 package com.example.transferdata.common.utils
 
-import android.util.Log
 import com.example.transferdata.database.model.SensorGenericData
 
 class SampleSensorGenericData(
