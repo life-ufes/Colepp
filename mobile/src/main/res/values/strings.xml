@@ -24,4 +24,8 @@
     <string name="home_toolbar_title">Minhas capturas</string>
     <string name="home_bottom_bar_home">Home</string>
     <string name="home_bottom_bar_guidance">Instruções</string>
+
+    <!--  Edit Record Screen  -->
+    <string name="edit_record">Editar captura</string>
+    <string name="btn_save_record_edited_recording">Salvar</string>
 </resources>
