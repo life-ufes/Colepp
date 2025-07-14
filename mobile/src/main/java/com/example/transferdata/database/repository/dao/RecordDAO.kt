@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class RecordDAO : BaseDao<RecordEntity> {
-    @Query("SELECT * FROM ${RecordEntity.TABLE_NAME}")
+    @Query("SELECT * FROM ${RecordEntity.TABLE_NAME} ORDER BY starRecordingMilli DESC")
     abstract fun getAll(): Flow<List<RecordEntity>>
 
     @Query("UPDATE ${RecordEntity.TABLE_NAME} SET clockSkewSmartwatchNanos = :clockSkew WHERE id = :id")
@@ -21,4 +21,10 @@ abstract class RecordDAO : BaseDao<RecordEntity> {
 
     @Query("SELECT * FROM ${RecordEntity.TABLE_NAME} WHERE id = :id")
     abstract suspend fun getById(id: Long): RecordEntity?
+
+    @Query("DELETE FROM ${RecordEntity.TABLE_NAME} WHERE id = :id")
+    abstract suspend fun deleteById(id: Long): Int
+
+    @Query("UPDATE ${RecordEntity.TABLE_NAME} SET title = :title, description = :description WHERE id = :id")
+    abstract suspend fun updateRecord(id: Long, title: String, description: String): Int
 }
