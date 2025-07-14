@@ -4,19 +4,25 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.transferdata.database.model.AccelerometerPolarEntity
 import com.example.transferdata.database.model.AccelerometerSmartwatchEntity
 import com.example.transferdata.database.model.AmbientTemperatureSmartwatchEntity
+import com.example.transferdata.database.model.GravitySmartwatchEntity
 import com.example.transferdata.database.model.GyroscopeSmartwatchEntity
 import com.example.transferdata.database.model.HeartRatePolarEntity
 import com.example.transferdata.database.model.HeartRateSmartwatchEntity
+import com.example.transferdata.database.model.LinearAccelerationSmartwatchEntity
 import com.example.transferdata.database.model.RecordEntity
 import com.example.transferdata.database.repository.dao.AccelerometerPolarDao
 import com.example.transferdata.database.repository.dao.AccelerometerSmartwatchDao
 import com.example.transferdata.database.repository.dao.AmbientTemperatureSmartwatchDao
+import com.example.transferdata.database.repository.dao.GravitySmartwatchDao
 import com.example.transferdata.database.repository.dao.GyroscopeSmartwatchDao
 import com.example.transferdata.database.repository.dao.HeartRatePolarDao
 import com.example.transferdata.database.repository.dao.HeartRateSmartwatchDao
+import com.example.transferdata.database.repository.dao.LinearAccelerationSmartwatchDao
 import com.example.transferdata.database.repository.dao.RecordDAO
 
 @Database(
@@ -31,7 +37,7 @@ import com.example.transferdata.database.repository.dao.RecordDAO
         GravitySmartwatchEntity::class,
         AmbientTemperatureSmartwatchEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class RecordDatabase : RoomDatabase() {
@@ -57,11 +63,17 @@ abstract class RecordDatabase : RoomDatabase() {
                         klass = RecordDatabase::class.java,
                         name = DATABASE_NAME
                     )
-                        .fallbackToDestructiveMigration(true) // TODO - isso é apenas para desenvolvimento, remover depois
+                        .addMigrations(MIGRATION_1_2)
                         .build()
                 }
             }
             return INSTANCE
+        }
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE ${RecordEntity.TABLE_NAME} ADD COLUMN shared INTEGER NOT NULL DEFAULT 0")
+            }
         }
     }
 }
