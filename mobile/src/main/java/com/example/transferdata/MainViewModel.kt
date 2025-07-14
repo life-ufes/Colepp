@@ -4,7 +4,6 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.commons.ThreeAxisData
 import com.example.transferdata.bluetoothHandler.BluetoothStatus
 import com.example.transferdata.common.utils.DevicesStatus
 import com.example.transferdata.common.utils.RecordingStatus
@@ -50,17 +49,6 @@ class MainViewModel @Inject constructor(
             observerClockSkew()
             observerWearSamples()
             observerPolarSamples()
-        }
-        viewModelScope.launch {
-            //para teste
-            polarStatus.hrValue.collectLatest {
-                it?.let { hr ->
-                    _polarSamples.value += hr
-                    _timeOfFirstPolarSample.value ?: run {
-                        _timeOfFirstPolarSample.value = hr.second / 1000L // Convert to milliseconds
-                    }
-                }
-            }
         }
     }
 
@@ -261,9 +249,6 @@ class MainViewModel @Inject constructor(
                     _recordingStatus.value = RecordingStatus.Error
                 }
             }
-
-            //temporario para teste
-            _initTime.value = System.currentTimeMillis()
         }
         if (_recordingStatus.value == RecordingStatus.Running) {
             wearableStatus.stopTransferData()
@@ -334,31 +319,6 @@ class MainViewModel @Inject constructor(
                                 stopRecordingMilli = timeMillis
                             )
                         }
-                        val mediaOfTimesHR = _polarSamples.value
-                            .zipWithNext { a, b -> b.second - a.second }
-                            .average()
-
-                        val mediaOfTimesWear = _wearSamples.value
-                            .zipWithNext { a, b -> b.second - a.second }
-                            .average()
-
-                        val mediaOfTimeCollectWear = _wearSamples.value
-                            .sortedBy { it.first.timestamp }
-                            .zipWithNext { a, b -> b.first.timestamp - a.first.timestamp }
-                            .average()
-
-                        Log.d(
-                            TAG,
-                            "Average time between HR samples: $mediaOfTimesHR ms ${1000 / mediaOfTimesHR} Hz"
-                        )
-                        Log.d(
-                            TAG,
-                            "Average time between Wear samples: $mediaOfTimesWear ms ${1000 / mediaOfTimesWear} Hz"
-                        )
-                        Log.d(
-                            TAG,
-                            "Average time between Wear data collection: $mediaOfTimeCollectWear ns ${1_000_000_000 / mediaOfTimeCollectWear} Hz"
-                        )
                     }
 
                     else -> {}
@@ -410,29 +370,7 @@ class MainViewModel @Inject constructor(
         } else {
             _recordingStatus.value = RecordingStatus.NotReady
         }
-
-        _initTime.value = null
-        _timeOfFirstWearSample.value = null
-        _timeOfFirstPolarSample.value = null
-        _polarSamples.value = emptyList()
-        _wearSamples.value = emptyList()
     }
-
-    // temporario para teste
-    private val _initTime = MutableStateFlow<Long?>(null)
-    val initTime = _initTime.asStateFlow()
-
-    private val _timeOfFirstPolarSample = MutableStateFlow<Long?>(null)
-    val timeOfFirstPolarSample = _timeOfFirstPolarSample.asStateFlow()
-
-    private val _polarSamples = MutableStateFlow<List<Pair<Int, Long>>>(emptyList())
-    val polarSamples = _polarSamples.asStateFlow()
-
-    private val _timeOfFirstWearSample = MutableStateFlow<Long?>(null)
-    val timeOfFirstWearSample = _timeOfFirstWearSample.asStateFlow()
-
-    private val _wearSamples = MutableStateFlow<List<Pair<ThreeAxisData, Long>>>(emptyList())
-    val wearSamples = _wearSamples.asStateFlow()
 
     companion object {
         private const val TAG = "MainViewModel"
