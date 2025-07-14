@@ -26,4 +26,9 @@
     <color name="red_dark">#E9574F</color>
     <color name="red_light">#FDE9E4</color>
     <color name="arrow_color">#FF979797</color>
+
+    <color name="toolbar_background">@color/primary_color_light</color>
+    <color name="card_background_color">@color/primary_color_light</color>
+    <color name="heart_rate_polar_color">#FF0F00</color>
+    <color name="heart_rate_smartwatch_color">#000FFF</color>
 </resources>
