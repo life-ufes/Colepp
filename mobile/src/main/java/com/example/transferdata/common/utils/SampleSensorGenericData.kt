@@ -11,9 +11,15 @@ class SampleSensorGenericData(
 
     fun getValueOfTimestamp(timestamp: Long): SensorGenericData? {
         if (lastData == null
-            || (lastData!!.second.first > timestamp || lastData!!.second.second <= timestamp)) {
+            || (lastData!!.second.first > timestamp || lastData!!.second.second <= timestamp)
+        ) {
             data.withIndex().zipWithNext { current, next ->
-                if (verificationIfBetween(timestamp, current.value.timestamp, next.value.timestamp)) {
+                if (verificationIfBetween(
+                        timestamp,
+                        current.value.timestamp,
+                        next.value.timestamp
+                    )
+                ) {
                     lastData = Triple(
                         current.index,
                         Pair(current.value.timestamp, next.value.timestamp),
@@ -22,7 +28,6 @@ class SampleSensorGenericData(
                 }
             }
         }
-
         return lastData?.third
     }
 
@@ -39,8 +44,9 @@ class SampleSensorGenericData(
             data.forEach { it.timestamp += clockSkew }
         }
 
-        // Subtrai 1 para pegar o valor que estava antes de iniciar o intervalo
-        val indexStart = data.indexOfFirst { it.timestamp >= startTime } - 1
+        // Subtract 1 to get the value before the start of the range if it is not the first value
+        val indexStart = data.indexOfFirst { it.timestamp >= startTime }
+            .let { if (it != 0) it - 1 else it }
         val indexFinish = data.indexOfLast { it.timestamp <= finishTime }
 
         if (indexStart < 0 || indexFinish < 0 || indexStart > indexFinish) {
@@ -48,6 +54,13 @@ class SampleSensorGenericData(
         }
 
         data = data.subList(indexStart, indexFinish)
+        data.firstOrNull()?.let {
+            lastData = Triple(
+                0,
+                Pair(Long.MIN_VALUE, it.timestamp),
+                it
+            )
+        }
     }
 
     private fun getHzFromNanoSec(values: List<Long>): Double {
