@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -364,9 +365,13 @@ private fun ScreenContent(
             .fillMaxSize()
             .padding(horizontal = Size.size05)
             .padding(top = Size.size04),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(Size.size04)
     ) {
-        Row {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(Size.size04, Alignment.End)
+        ) {
             Text(
                 text = record.title,
                 modifier = Modifier.weight(1f),
@@ -375,12 +380,16 @@ private fun ScreenContent(
             Icon(
                 painter = painterResource(id = R.drawable.ic_download),
                 contentDescription = null,
-                modifier = Modifier.clickable { downloadDataset() }
+                modifier = Modifier
+                    .size(Size.size08)
+                    .clickable { downloadDataset() }
             )
             Icon(
                 painter = painterResource(id = R.drawable.ic_share),
                 contentDescription = null,
-                modifier = Modifier.clickable { shareDataset() }
+                modifier = Modifier
+                    .size(Size.size08)
+                    .clickable { shareDataset() }
             )
         }
         if (record.description.isNotBlank()) {
