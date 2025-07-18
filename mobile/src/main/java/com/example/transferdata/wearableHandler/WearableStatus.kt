@@ -236,7 +236,15 @@ class WearableStatus @Inject constructor(
                     sendStopTransferDataMessage(node.id)
                 }
             }
-        _syncTimeValue.value = null
+        CoroutineScope(Dispatchers.Default).launch {
+            _syncTimeValue.value = null
+            _accValue.value = null
+            _linearAccValue.value = null
+            _hrValue.value = null
+            _ambientTemperatureValue.value = null
+            _gyroscopeValue.value = null
+            _gravityValue.value = null
+        }
     }
 
     private fun sendStopTransferDataMessage(nodeId: String) {
