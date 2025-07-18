@@ -214,20 +214,43 @@ private fun RecordCard(
                 style = TextStyles.TextSSmall
             )
         }
-        Icon(
-            painter = painterResource(id = R.drawable.ic_edit),
-            contentDescription = null,
-            modifier = Modifier
-                .size(Size.size08)
-                .clickable { onEditClicked(record.id) }
-        )
-        Icon(
-            painter = painterResource(id = R.drawable.ic_delete),
-            contentDescription = null,
-            modifier = Modifier
-                .size(Size.size08)
-                .clickable { onRemoveClicked() }
-        )
+        Column(
+            horizontalAlignment = Alignment.End
+        ) {
+            if (record.shared == 0) {
+                Surface(
+                    modifier = modifier,
+                    shape = RoundedCornerShape(Size.size05),
+                    color = colorResource(id = R.color.red_light),
+                    content = {
+                        Text(
+                            text = stringResource(id = R.string.home_record_not_shared),
+                            style = TextStyles.TextSBold,
+                            color = colorResource(id = R.color.red_dark),
+                            modifier = Modifier.padding(Size.size02)
+                        )
+                    }
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Size.size04)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_edit),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(Size.size08)
+                        .clickable { onEditClicked(record.id) }
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_delete),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(Size.size08)
+                        .clickable { onRemoveClicked() }
+                )
+            }
+        }
     }
 }
 
@@ -358,7 +381,8 @@ private fun HomeContentPreview() {
                 id = 1L,
                 title = "Sample Record 1",
                 description = "This is a sample record description.",
-                starRecordingMilli = System.currentTimeMillis()
+                starRecordingMilli = System.currentTimeMillis(),
+                shared = 1
             ),
             RecordEntity(
                 id = 1L,
