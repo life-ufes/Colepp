@@ -12,7 +12,7 @@ object TextStyles {
         color = Color.Black,
         fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
+        fontSize = 22.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.sp
     )
