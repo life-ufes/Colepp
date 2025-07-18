@@ -41,17 +41,6 @@ class MainViewModel @Inject constructor(
     private val recordDatabase: RecordDatabase
 ) : ViewModel() {
 
-    init {
-        viewModelScope.launch {
-            delay(3000L)// gambiarra para poder coletar os valores dos flows apos eles instanciarem
-            recordingStatusHandler()
-            observerPreparing()
-            observerClockSkew()
-            observerWearSamples()
-            observerPolarSamples()
-        }
-    }
-
     private fun observerPolarSamples() {
         viewModelScope.launch {
             polarStatus.hrValue.collectLatest { hr ->
@@ -370,6 +359,14 @@ class MainViewModel @Inject constructor(
         } else {
             _recordingStatus.value = RecordingStatus.NotReady
         }
+    }
+
+    init {
+        recordingStatusHandler()
+        observerPreparing()
+        observerClockSkew()
+        observerWearSamples()
+        observerPolarSamples()
     }
 
     companion object {
