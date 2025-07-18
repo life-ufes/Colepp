@@ -27,4 +27,7 @@ abstract class RecordDAO : BaseDao<RecordEntity> {
 
     @Query("UPDATE ${RecordEntity.TABLE_NAME} SET title = :title, description = :description WHERE id = :id")
     abstract suspend fun updateRecord(id: Long, title: String, description: String): Int
+
+    @Query("UPDATE ${RecordEntity.TABLE_NAME} SET shared = 1 WHERE id = :id")
+    abstract suspend fun setShared(id: Long): Int
 }

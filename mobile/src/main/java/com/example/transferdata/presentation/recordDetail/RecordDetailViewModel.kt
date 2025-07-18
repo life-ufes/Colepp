@@ -81,6 +81,7 @@ class RecordDetailViewModel @Inject constructor(
                 .collect { status ->
                     _saveDatasetDownloadStatus.value = status
                     Log.d("RecordDetailViewModel", "Saving dataset to download status: $status")
+                    if (status is SavingDatasetStatus.Success) setRecordShared(recordId)
                 }
         }
     }
@@ -92,7 +93,14 @@ class RecordDetailViewModel @Inject constructor(
                 .collect { status ->
                     _saveDatasetShareStatus.value = status
                     Log.d("RecordDetailViewModel", "Saving dataset to share status: $status")
+                    if (status is SavingDatasetStatus.Success) setRecordShared(recordId)
                 }
+        }
+    }
+
+    private fun setRecordShared(id: Long) {
+        viewModelScope.launch {
+            recordDatabase.recordDao().setShared(id)
         }
     }
 
