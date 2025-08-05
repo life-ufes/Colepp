@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Transfer data</string>
+    <string name="app_name">Colepp</string>
     <string name="hello_world">From the Square world,\nHello, %1$s!</string>
     <string name="waiting_for_data">Aguardando comando para iniciar a coleta de dados.</string>
     <string name="transferring_data">Transmitindo dados</string>
