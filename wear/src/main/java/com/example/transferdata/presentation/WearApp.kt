@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
@@ -95,19 +97,23 @@ fun MainScreen(
 private fun WaitingScreen() {
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_hourglass),
+            contentDescription = null,
+            modifier = Modifier
+                .size(48.dp),
+            tint = colorResource(id = R.color.hourglass)
+        )
         Text(
             text = stringResource(R.string.waiting_for_data),
             color = Color.Gray,
-            modifier = Modifier
-                .background(
-                    color = colorResource(id = R.color.waiting_background_color),
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(8.dp)
+            modifier = Modifier.padding(8.dp),
+            textAlign = TextAlign.Center
         )
     }
 }

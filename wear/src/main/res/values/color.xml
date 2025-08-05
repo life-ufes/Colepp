@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="waiting_background_color">#FF0000</color>
+    <color name="hourglass">#A7A7A7</color>
 </resources>
