@@ -2,6 +2,7 @@ package com.example.transferdata.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.transferdata.common.utils.InstructionCard
 import com.example.transferdata.database.model.RecordEntity
 import com.example.transferdata.database.repository.RecordDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +30,9 @@ class HomeViewModel @Inject constructor(
     private val _section = MutableStateFlow(HOME_SECTION)
     val section = _section.asStateFlow()
 
+    private val _expandedInstructions = MutableStateFlow<Map<InstructionCard, Boolean>>(emptyMap())
+    val expandedInstructions = _expandedInstructions.asStateFlow()
+
     fun setSection(section: String) {
         _section.value = section
     }
@@ -49,6 +53,12 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    fun toggleInstructionExpansion(instruction: InstructionCard) {
+        _expandedInstructions.value = _expandedInstructions.value.toMutableMap().apply {
+            this[instruction] = !this.getOrDefault(instruction, false)
         }
     }
 

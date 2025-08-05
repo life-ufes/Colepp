@@ -27,8 +27,10 @@
 
     <!--  Home Screen  -->
     <string name="home_toolbar_title">Minhas capturas</string>
+    <string name="instructions_toolbar_title">Instruções</string>
     <string name="home_bottom_bar_home">Home</string>
     <string name="home_bottom_bar_guidance">Instruções</string>
+    <string name="home_bottom_bar_new_recording">Nova captura</string>
     <string name="home_delete_record_dialog_title">Tem certeza que deseja excluir a captura: %s?</string>
     <string name="home_delete_record_dialog_message">Se ela for excluida não tera como restaurar.</string>
     <string name="home_delete_record_dialog_confirm_button">Excluir</string>
@@ -40,6 +42,7 @@
     <string name="dataset_saved_successfully_message">Arquivo criado em: %s</string>
     <string name="ok">Ok</string>
     <string name="close">Fechar</string>
+    <string name="home_record_not_shared">Não compartilhado</string>
 
     <!--  Edit Record Screen  -->
     <string name="edit_record">Editar captura</string>
@@ -52,4 +55,46 @@
     <string name="record_detail_time_duration">Tempo de duração:</string>
     <string name="heart_rate_unit">bpm</string>
     <string name="toast_error_sharing_file">Não foi possivel compartilhar o arquivo!</string>
+
+    <!--  Instructions  -->
+    <string name="instructions_init_new_record">Iniciar uma nova captura:</string>
+    <string name="new_record_instructions_1_pt_1">Para iniciar uma nova captura é necessário clicar no item “</string>
+    <string name="new_record_instructions_1_pt_2"> %s” no menu de navegação inferior da home.</string>
+    <string name="new_record_instructions_2">Vai ser redirecionado para tela de “%s” e é necessário colocar um nome para ela com mais de 3 caracteres, a descrição é opcional.</string>
+    <string name="new_record_instructions_3">Inserindo os valores é só clicar em “%s” que vai ser redirecionado para tela de “%s”.</string>
+    <string name="new_record_instructions_4">Para iniciar uma nova captura é necessário estar com os dois dispositivos conectados.</string>
+    <string name="new_record_instructions_5">Com os dispositivos conectados é só clicar em “%s” que será aparecerá uma contagem de 3 segundos para iniciar a captura.</string>
+    <string name="new_record_instructions_6">Após isso já está salvando os dados localmente até clicar em “%s” ou algum dispositivo desconectar.</string>
+    <string name="new_record_instructions_7">Após isso é só clicar em voltar que será redirecionado para Home do aplicativo com a listagem de todas as capturas salvas.</string>
+    <string name="instructions_connect_devices">Para conectar os dispositivos:</string>
+    <string name="connect_devices_instructions_1">Para que o aplicativo consiga fazer a detecção e conecção automatica com o Polar H10 e o smartwatch é necessario que os dispositivos já estejam pareados com o aparelho.</string>
+    <string name="connect_devices_instructions_2">Com o bluetooth ligado e os dispositivos pareados com o aparelho é só clicar em cada card que vai ser iniciado a conexão automática.</string>
+    <string name="connect_devices_instructions_3">Espere alguns segundos para eles estarem conectados, vai ter um feedback quando estiver tudo certo, e o botão vai ficar habilitado.</string>
+    <string name="connect_devices_instructions_4">No caso do smartwatch, ao clicar no card, o aplicativo será iniciado automaticamente no dispositivo. Caso isso não aconteça, ou se preferir, você pode abri-lo manualmente tocando no ícone do app no próprio smartwatch.</string>
+    <string name="instructions_delete_record">Excluir uma captura:</string>
+    <string name="delete_record_instructions_1_pt_1">"Clicar no ícone "</string>
+    <string name="delete_record_instructions_1_pt_2">" no card da captura na home."</string>
+    <string name="delete_record_instructions_2">Vai exibir uma caixa de confirmação, pois após excluir o dado não é possível recupera-lo.</string>
+    <string name="delete_record_instructions_3">Clicar em “%s” para confirmar.</string>
+    <string name="delete_record_instructions_4">Clicar em “%s” para desistir.</string>
+    <string name="instructions_edit_record">Editar uma captura:</string>
+    <string name="edit_record_instructions_1_pt_1">"Clicar no ícone "</string>
+    <string name="edit_record_instructions_1_pt_2">" no card da captura na home."</string>
+    <string name="edit_record_instructions_2">Vai ser redirecionado para a tela “%s”, podendo editar o nome e a descrição.</string>
+    <string name="edit_record_instructions_3">Para confirmar é só clicar no botão “%s”.</string>
+    <string name="edit_record_instructions_4">Para não alterar nada é só clicar voltar no canto superior esquerdo ou na barra de navegação.</string>
+    <string name="instructions_download_record">Baixar uma captura em formato csv:</string>
+    <string name="download_record_instructions_1">Clicar no card da captura que deseja baixar</string>
+    <string name="download_record_instructions_2_pt_1">"Ao ser redirecionado para tela de detalhes de uma captura é só clicar no ícone "</string>
+    <string name="download_record_instructions_2_pt_2">" no canto superior direito que vai começar o processo de gerar o arquivo."</string>
+    <string name="download_record_instructions_3">Aparecera uma caixa de dialogo com carregamento enquanto o arquivo é gerado.</string>
+    <string name="download_record_instructions_4">Caso dê certo aparecerá uma mensagem de sucesso dizendo o local onde o arquivo foi salvo, normalmente na pasta de downloads padrão do dispositivo.</string>
+    <string name="download_record_instructions_5">Caso dê erro aparecera uma mensagem informando o erro ocorrido.</string>
+    <string name="instructions_share_record">Compartilhar uma captura em formato csv:</string>
+    <string name="share_record_instructions_1">Clicar no card da captura que deseja baixar.</string>
+    <string name="share_record_instructions_2_pt_1">"Ao ser redirecionado para tela de detalhes de uma captura é só clicar no ícone "</string>
+    <string name="share_record_instructions_2_pt_2">" no canto superior direito que vai começar o processo de gerar o arquivo."</string>
+    <string name="share_record_instructions_3">Aparecera uma caixa de diálogo com carregamento enquanto o arquivo é gerado.</string>
+    <string name="share_record_instructions_4">Caso dê certo aparecerá um Menu de Compartilhamento com as opções de aplicativos possíveis para compartilhamento.</string>
+    <string name="share_record_instructions_5">Caso dê erro aparecera uma mensagem informando o erro ocorrido.</string>
 </resources>

@@ -1,12 +1,17 @@
 package com.example.transferdata.common.composeUI
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,11 +28,16 @@ fun ExpandableCard(
     modifier: Modifier = Modifier,
     expanded: Boolean,
     toggleCard: () -> Unit,
-    header: @Composable ((Modifier) -> Unit),
+    header: @Composable () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .background(
+                color = colorResource(id = R.color.primary_color_light),
+                shape = RoundedCornerShape(Size.size03)
+            )
+            .padding(Size.size05),
         verticalArrangement = Arrangement.spacedBy(Size.size03)
     ) {
         Row(
@@ -36,7 +46,8 @@ fun ExpandableCard(
                 .clickable { toggleCard() },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            header(Modifier.weight(1f))
+            header()
+            Spacer(Modifier.weight(1f))
             Icon(
                 painter = painterResource(
                     if (expanded) R.drawable.ic_arrow_up
@@ -44,6 +55,7 @@ fun ExpandableCard(
                 ),
                 contentDescription = null,
                 tint = colorResource(id = R.color.gray_40),
+                modifier = Modifier.size(Size.size07)
             )
         }
         AnimatedVisibility(expanded) {
@@ -58,10 +70,9 @@ private fun DropDownCardPreview() {
     ExpandableCard(
         expanded = true,
         toggleCard = { },
-        header = { modifier ->
+        header = {
             Text(
-                text = "Header",
-                modifier = modifier,
+                text = "Header"
             )
         },
         content = {

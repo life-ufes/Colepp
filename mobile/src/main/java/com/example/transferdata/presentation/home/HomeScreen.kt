@@ -20,34 +20,30 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.foundation.text.appendInlineContent
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.Placeholder
-import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.transferdata.R
 import com.example.transferdata.common.composeUI.ButtonStyle
 import com.example.transferdata.common.composeUI.DefaultButton
 import com.example.transferdata.common.composeUI.DefaultDialog
+import com.example.transferdata.common.composeUI.ExpandableCard
 import com.example.transferdata.common.composeUI.Toolbar
+import com.example.transferdata.common.utils.InstructionCard
 import com.example.transferdata.common.utils.Size
 import com.example.transferdata.common.utils.TextStyles
 import com.example.transferdata.common.utils.toFormat
@@ -66,16 +62,35 @@ fun HomeScreen(
     val records = viewModel.recordings.collectAsState()
     val showDialog = viewModel.showDeleteDialog.collectAsState()
     val section = viewModel.section.collectAsState()
+    val expandableStates = viewModel.expandedInstructions.collectAsState()
     val lazyListHomeState = rememberLazyListState()
     val lazyListInstructionsState = rememberLazyListState()
+    val instructions = getAllInstructions()
 
     Scaffold(
         topBar = {
-            Toolbar(
-                title = stringResource(id = R.string.home_toolbar_title),
-                hasCloseIcon = false,
-                hasBackIcon = false,
-            )
+            AnimatedVisibility(
+                visible = section.value == HOME_SECTION,
+                enter = slideInHorizontally { -it },
+                exit = slideOutHorizontally { -it }
+            ) {
+                Toolbar(
+                    title = stringResource(id = R.string.home_toolbar_title),
+                    hasCloseIcon = false,
+                    hasBackIcon = false,
+                )
+            }
+            AnimatedVisibility(
+                visible = section.value == INSTRUCTIONS_SECTION,
+                enter = slideInHorizontally { it },
+                exit = slideOutHorizontally { it }
+            ) {
+                Toolbar(
+                    title = stringResource(id = R.string.instructions_toolbar_title),
+                    hasCloseIcon = false,
+                    hasBackIcon = false,
+                )
+            }
         },
         bottomBar = {
             BottomBar(
@@ -109,7 +124,10 @@ fun HomeScreen(
         ) {
             InstructionsContent(
                 modifier = modifier.fillMaxSize(),
-                state = lazyListInstructionsState
+                state = lazyListInstructionsState,
+                instructions = instructions,
+                expandableStates = expandableStates.value,
+                toggleExpandable = viewModel::toggleInstructionExpansion
             )
         }
     }
@@ -314,7 +332,10 @@ private fun BottomBarItem(
 @Composable
 private fun InstructionsContent(
     modifier: Modifier,
-    state: LazyListState
+    state: LazyListState,
+    instructions: Map<InstructionCard, List<Pair<AnnotatedString, Map<String, InlineTextContent>>>>,
+    expandableStates: Map<InstructionCard, Boolean>,
+    toggleExpandable: (InstructionCard) -> Unit
 ) {
     LazyColumn(
         modifier = modifier
@@ -325,34 +346,147 @@ private fun InstructionsContent(
         item {
             Spacer(modifier = Modifier.size(Size.size01))
         }
-        items(List(5) { "Instruction ${it + 1}" }) { instruction ->
-            val myId = "sharedIcon"
-
-            val text = buildAnnotatedString {
-                append("Status: ")
-                appendInlineContent(myId, "[icon]")
-                append(" Não compartilhado ".repeat(5))
-            }
-
-            val inlineContent = mapOf(
-                myId to InlineTextContent(
-                    Placeholder(
-                        width = 16.sp,
-                        height = 16.sp,
-                        placeholderVerticalAlign = PlaceholderVerticalAlign.Center
+        item {
+            ExpandableCard(
+                expanded = expandableStates.getOrDefault(InstructionCard.InitNewRecord, false),
+                toggleCard = { toggleExpandable(InstructionCard.InitNewRecord) },
+                modifier = Modifier.fillMaxWidth(),
+                header = {
+                    Text(
+                        text = stringResource(id = R.string.instructions_init_new_record),
+                        style = TextStyles.TextLSemiBold
                     )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add, // ou outro ícone
-                        contentDescription = "Ícone compartilhamento",
-                        tint = Color.Gray
-                    )
+                },
+                content = {
+                    Column {
+                        instructions[InstructionCard.InitNewRecord]?.forEach { value ->
+                            Text(
+                                text = value.first,
+                                inlineContent = value.second
+                            )
+                        }
+
+                    }
                 }
             )
-
-            Text(
-                text = text,
-                inlineContent = inlineContent
+        }
+        item {
+            ExpandableCard(
+                expanded = expandableStates.getOrDefault(
+                    InstructionCard.ConnectToDevice,
+                    false
+                ),
+                toggleCard = { toggleExpandable(InstructionCard.ConnectToDevice) },
+                modifier = Modifier.fillMaxWidth(),
+                header = {
+                    Text(
+                        text = stringResource(id = R.string.instructions_connect_devices),
+                        style = TextStyles.TextLSemiBold
+                    )
+                },
+                content = {
+                    Column {
+                        instructions[InstructionCard.ConnectToDevice]?.forEach { value ->
+                            Text(
+                                text = value.first,
+                                inlineContent = value.second
+                            )
+                        }
+                    }
+                }
+            )
+        }
+        item {
+            ExpandableCard(
+                expanded = expandableStates.getOrDefault(InstructionCard.DeleteRecord, false),
+                toggleCard = { toggleExpandable(InstructionCard.DeleteRecord) },
+                modifier = Modifier.fillMaxWidth(),
+                header = {
+                    Text(
+                        text = stringResource(id = R.string.instructions_delete_record),
+                        style = TextStyles.TextLSemiBold
+                    )
+                },
+                content = {
+                    Column {
+                        instructions[InstructionCard.DeleteRecord]?.forEach { value ->
+                            Text(
+                                text = value.first,
+                                inlineContent = value.second
+                            )
+                        }
+                    }
+                }
+            )
+        }
+        item {
+            ExpandableCard(
+                expanded = expandableStates.getOrDefault(InstructionCard.EditRecord, false),
+                toggleCard = { toggleExpandable(InstructionCard.EditRecord) },
+                modifier = Modifier.fillMaxWidth(),
+                header = {
+                    Text(
+                        text = stringResource(id = R.string.instructions_edit_record),
+                        style = TextStyles.TextLSemiBold
+                    )
+                },
+                content = {
+                    Column {
+                        instructions[InstructionCard.EditRecord]?.forEach { value ->
+                            Text(
+                                text = value.first,
+                                inlineContent = value.second
+                            )
+                        }
+                    }
+                }
+            )
+        }
+        item {
+            ExpandableCard(
+                expanded = expandableStates.getOrDefault(InstructionCard.DownloadRecord, false),
+                toggleCard = { toggleExpandable(InstructionCard.DownloadRecord) },
+                modifier = Modifier.fillMaxWidth(),
+                header = {
+                    Text(
+                        text = stringResource(id = R.string.instructions_download_record),
+                        style = TextStyles.TextLSemiBold
+                    )
+                },
+                content = {
+                    Column {
+                        instructions[InstructionCard.DownloadRecord]?.forEach { value ->
+                            Text(
+                                text = value.first,
+                                inlineContent = value.second
+                            )
+                        }
+                    }
+                }
+            )
+        }
+        item {
+            ExpandableCard(
+                expanded = expandableStates.getOrDefault(InstructionCard.ShareRecord, false),
+                toggleCard = { toggleExpandable(InstructionCard.ShareRecord) },
+                modifier = Modifier.fillMaxWidth(),
+                header = {
+                    Text(
+                        text = stringResource(id = R.string.instructions_share_record),
+                        style = TextStyles.TextLSemiBold,
+//                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                content = {
+                    Column {
+                        instructions[InstructionCard.ShareRecord]?.forEach { value ->
+                            Text(
+                                text = value.first,
+                                inlineContent = value.second
+                            )
+                        }
+                    }
+                }
             )
         }
         item {
@@ -403,6 +537,9 @@ private fun HomeContentPreview() {
 private fun InstructionsContentPreview() {
     InstructionsContent(
         modifier = Modifier.fillMaxSize(),
-        state = rememberLazyListState()
+        state = rememberLazyListState(),
+        expandableStates = mapOf(),
+        instructions = getAllInstructions(),
+        toggleExpandable = {}
     )
 }
