@@ -223,10 +223,9 @@ private fun ScreenContent(
             }
             DefaultButton(
                 text = stringResource(
-                    if (recordingStatus is RecordingStatus.Ready) {
-                        R.string.start_recording
-                    } else {
-                        R.string.finish_recording
+                    when (recordingStatus) {
+                        is RecordingStatus.Ready, RecordingStatus.NotReady -> R.string.start_recording
+                        else -> R.string.finish_recording
                     }
                 ),
                 onClick = {
