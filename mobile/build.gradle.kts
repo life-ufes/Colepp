@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.transferdata"
+    namespace = "com.example.colepp"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.transferdata"
+        applicationId = "com.example.colepp"
         minSdk = 30
         targetSdk = 34
         versionCode = 1
