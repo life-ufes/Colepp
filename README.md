@@ -1,3 +1,6 @@
+
+![alt text](logo-colepp.png)
+
 # 📊 Colepp — Cross-Platform Tool for Wearable Device Data Collection
 
 [:brazil: version](README-PT-BR.md)
