@@ -31,7 +31,8 @@ internal fun NavGraphBuilder.addNewRecordingGraph(
     navController: NavHostController,
     mainViewModel: MainViewModel,
     onBackPressed: () -> Unit,
-    setKeepScreenFlag: (Boolean) -> Unit
+    setKeepScreenFlag: (Boolean) -> Unit,
+    requestBluetoothScanPermission: () -> Unit
 ) {
     navigation(
         route = CREATE_NEW_RECORDING_GRAPH,
@@ -65,7 +66,8 @@ internal fun NavGraphBuilder.addNewRecordingGraph(
             RecordingScreen(
                 mainViewModel = mainViewModel,
                 onBackPressed = onBackPressed,
-                setKeepScreenFlag = setKeepScreenFlag
+                setKeepScreenFlag = setKeepScreenFlag,
+                requestBluetoothScanPermission = requestBluetoothScanPermission
             )
         }
     }

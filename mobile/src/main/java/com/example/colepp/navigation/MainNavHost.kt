@@ -16,7 +16,8 @@ internal fun MainNavHost(
     onBackPressed: () -> Unit,
     setKeepScreenFlag: (Boolean) -> Unit,
     createDatasetFile: (Long, (File) -> Unit) -> Unit,
-    shareFile: (Uri) -> Unit
+    shareFile: (Uri) -> Unit,
+    requestBluetoothScanPermission: () -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -32,7 +33,8 @@ internal fun MainNavHost(
             navController = navController,
             mainViewModel = mainViewModel,
             onBackPressed = onBackPressed,
-            setKeepScreenFlag = setKeepScreenFlag
+            setKeepScreenFlag = setKeepScreenFlag,
+            requestBluetoothScanPermission = requestBluetoothScanPermission
         )
     }
 }

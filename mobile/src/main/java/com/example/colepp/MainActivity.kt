@@ -1,26 +1,34 @@
 package com.example.colepp
 
 import BluetoothStateReceiver
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import com.example.colepp.common.utils.formatToValidFileName
+import com.example.colepp.database.repository.RecordDatabase
+import com.example.colepp.navigation.MainNavHost
 import com.example.commons.Capabilities.Companion.ACCELEROMETER_CAPABILITY
 import com.example.commons.Capabilities.Companion.AMBIENT_TEMPERATURE_CAPABILITY
 import com.example.commons.Capabilities.Companion.GRAVITY_CAPABILITY
@@ -28,9 +36,6 @@ import com.example.commons.Capabilities.Companion.GYROSCOPE_CAPABILITY
 import com.example.commons.Capabilities.Companion.HEART_RATE_CAPABILITY
 import com.example.commons.Capabilities.Companion.LINEAR_ACCELERATION_CAPABILITY
 import com.example.commons.Capabilities.Companion.WEAR_CAPABILITY
-import com.example.colepp.common.utils.formatToValidFileName
-import com.example.colepp.database.repository.RecordDatabase
-import com.example.colepp.navigation.MainNavHost
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,6 +59,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var recordDatabase: RecordDatabase
 
+    private val requestBluetoothScanPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { booleanMap ->
+        val isGranted = booleanMap.values.reduceOrNull { acc, check -> acc && check } ?: true
+        if (isGranted) {
+            mainViewModel.polarStatus.connect()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -69,13 +83,41 @@ class MainActivity : ComponentActivity() {
                         mainViewModel = mainViewModel,
                         setKeepScreenFlag = ::setKeepScreenFlag,
                         createDatasetFile = ::createDatasetFile,
-                        shareFile = ::shareFile
+                        shareFile = ::shareFile,
+                        requestBluetoothScanPermission = {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                val permissions = arrayOf(
+                                    Manifest.permission.BLUETOOTH_SCAN,
+                                    Manifest.permission.BLUETOOTH_CONNECT
+                                )
+                                checkAndRequestBluetoothPermissions(permissions)
+                            } else {
+                                val permissions = arrayOf(
+                                    Manifest.permission.BLUETOOTH,
+                                    Manifest.permission.BLUETOOTH_ADMIN,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                )
+                                checkAndRequestBluetoothPermissions(permissions)
+                            }
+                        }
                     )
                 }
             }
         }
 
         configureBluetooth()
+    }
+
+    private fun checkAndRequestBluetoothPermissions(permissions: Array<String>) {
+        permissions.filter {
+            ContextCompat.checkSelfPermission(
+                this,
+                it
+            ) != PackageManager.PERMISSION_GRANTED
+        }.toTypedArray().let { missingPermissions ->
+            requestBluetoothScanPermissionLauncher.launch(missingPermissions)
+        }
     }
 
     private fun configureBluetooth() {

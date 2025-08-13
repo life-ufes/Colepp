@@ -52,7 +52,8 @@ fun RecordingScreen(
     viewModel: RecordingViewModel = hiltViewModel(),
     mainViewModel: MainViewModel,
     onBackPressed: () -> Unit,
-    setKeepScreenFlag: (Boolean) -> Unit
+    setKeepScreenFlag: (Boolean) -> Unit,
+    requestBluetoothScanPermission: () -> Unit
 ) {
     val devicesStatus = mainViewModel.devicesStatus.collectAsState()
     val buttonEnabled = mainViewModel.buttonRecordingEnabled.collectAsState()
@@ -130,7 +131,7 @@ fun RecordingScreen(
                 polarBatteryLevel = polarBatteryLevel.value,
                 wearableInfo = wearableInfo.value,
                 sendMessageToStartWearApp = mainViewModel.wearableStatus::sendStarWearAppMessage,
-                connectOnPolar = mainViewModel.polarStatus::connect
+                connectOnPolar = requestBluetoothScanPermission
             )
         }
     }
@@ -316,12 +317,7 @@ private fun CardOfPolar(
         title = stringResource(R.string.polar, polarInfo?.name.orDefault()),
         subtitle = subtitle,
         onClick = {
-//            if (devicesStatus is DevicesStatus.OnlyBluetoothOn
-//                || devicesStatus is DevicesStatus.OnlyWearOn
-//                || devicesStatus is DevicesStatus.WearAndPolarOn
-//            ) {
             connectOnPolar()
-//            }
         },
     ) {
         batteryLevel?.let {
