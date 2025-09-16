@@ -31,6 +31,10 @@ The focus is to enable **structured and synchronized data collection**, making i
     - [Edit a capture](#edit-a-capture)
     - [Download a capture in CSV format](#download-a-capture-in-csv-format)
     - [Share a capture in CSV format](#share-a-capture-in-csv-format)
+  - [📡 Device Communication](#-device-communication)
+  - [🗄️ Database](#️-database)
+  - [⚠️ Limitations](#️-limitations)
+  - [📈 Sensor Sampling Rate](#-sensor-sampling-rate)
   - [🤝 Contributing](#-contributing)
   - [📄 License](#-license)
 
@@ -136,6 +140,41 @@ The focus is to enable **structured and synchronized data collection**, making i
    - A **Sharing Menu** will appear listing the apps available for sending the file.
 5. If there is an error:
    - An error message will be displayed.
+
+---
+
+## 📡 Device Communication
+
+Communication between the mobile app and the wearable uses the Google Play Services MessageClient API, which allows real-time message exchange between devices connected via Bluetooth. The image below illustrates the data flow and interaction between system components:
+<img src="assets/communication_diagram.png" alt="Device Communication Diagram" width="600"/>
+
+---
+
+## 🗄️ Database
+
+The application uses SQLite to locally store collected data. The diagram below shows the database structure, including the main tables and their relationships:
+<img src="assets/database_diagram.png" alt="Database Diagram" width="600"/>
+
+---
+
+## 📈 Sensor Sampling Rate
+| Sensor | Sampling Rate |
+|----------------------|--------------------------|
+| Accelerometer (Wear OS) | 25 Hz |
+| Gyroscope (Wear OS) | 50 Hz |
+| Heart Rate (Wear OS) | 1 Hz |
+| Gravity (Wear OS) | 25 Hz |
+| Linear Acceleration (Wear OS) | 25 Hz |
+| Accelerometer (Polar H10) | 25 Hz |
+| Heart Rate (Polar H10) | 1 Hz |
+
+---
+
+## ⚠️ Limitations
+
+App version limitations:
+- The smartwatch app is only compatible with Wear OS 3.0 or higher.
+- The smartphone app requires Android 11.0 (R) or higher.
 
 ---
 

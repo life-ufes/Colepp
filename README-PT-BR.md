@@ -10,6 +10,8 @@ O sistema é composto por **dois módulos principais**:
 
 O foco é permitir **coleta estruturada e sincronizada**, facilitando a criação de datasets para pesquisas nas áreas de monitoramento de saúde, detecção de atividades humanas (HAR) e desenvolvimento de algoritmos de estimativa de frequência cardíaca.
 
+Foi feito um video de tutorial de uso da ferramenta: [Tutorial Colepp](https://drive.google.com/file/d/1TlWn2WMI4MvkFQ_k9JsjuzJQwiJQs4Qa/view)
+
 ---
 
 ## 🗂️ Sumário
@@ -27,6 +29,10 @@ O foco é permitir **coleta estruturada e sincronizada**, facilitando a criaçã
     - [Editar uma captura](#editar-uma-captura)
     - [Baixar uma captura em formato CSV](#baixar-uma-captura-em-formato-csv)
     - [Compartilhar uma captura em formato CSV](#compartilhar-uma-captura-em-formato-csv)
+  - [📡 Comunicação entre Dispositivos](#-comunicação-entre-dispositivos)
+  - [🗄️ Banco de Dados](#️-banco-de-dados)
+  - [📈 Frequência de Amostragem dos Sensores](#-frequência-de-amostragem-dos-sensores)
+  - [⚠️ Limitações](#️-limitações)
   - [🤝 Contribuição](#-contribuição)
   - [📄 Licença](#-licença)
 
@@ -136,6 +142,40 @@ O foco é permitir **coleta estruturada e sincronizada**, facilitando a criaçã
    - Um **Menu de Compartilhamento** aparecerá, listando os aplicativos possíveis para envio.
 5. Se der erro:
    - Uma mensagem informando o problema será exibida.
+
+---
+
+## 📡 Comunicação entre Dispositivos
+
+A comunicação entre o aplicativo mobile e o wearable é feita utilizando a API `MessageClient` do Google Play Services, que permite a troca de mensagens em tempo real entre os dispositivos conectados via Bluetooth. A imagem abaixo ilustra o fluxo de dados e a interação entre os componentes do sistema:
+<img src="assets/communication_diagram.png" alt="Diagrama de Comunicação entre Dispositivos" width="600"/>
+
+---
+
+## 🗄️ Banco de Dados
+
+O aplicativo utiliza o SQLite para armazenamento local dos dados coletados. O diagrama abaixo apresenta a estrutura do banco de dados, incluindo as tabelas principais e seus relacionamentos:
+<img src="assets/database_diagram.png" alt="Diagrama do Banco de Dados" width="600"/>
+
+---
+
+## 📈 Frequência de Amostragem dos Sensores
+| Sensor                | Frequência de Amostragem |
+|----------------------|--------------------------|
+| Acelerômetro (Wear OS) | 25 Hz                    |
+| Giroscópio (Wear OS)   | 50 Hz                    |
+| Frequência Cardíaca (Wear OS) | 1 Hz                     |
+| Gravidade (Wear OS)      | 25 Hz                    |
+| Aceleração Linear (Wear OS) | 25 Hz                    |
+| Acelerômetro (Polar H10) | 25 Hz                    |
+| Frequência Cardíaca (Polar H10) | 1 Hz                     |
+
+---
+
+## ⚠️ Limitações
+Limitações de versões dos aplicativos:
+- O aplicativo para smartwatch só é compatível com Wear OS 3.0 ou superior.
+- O aplicativo para smartphone requer Android 11.0 (R) ou superior.
 
 ---
 
