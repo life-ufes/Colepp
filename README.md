@@ -33,8 +33,8 @@ The focus is to enable **structured and synchronized data collection**, making i
     - [Share a capture in CSV format](#share-a-capture-in-csv-format)
   - [📡 Device Communication](#-device-communication)
   - [🗄️ Database](#️-database)
-  - [⚠️ Limitations](#️-limitations)
   - [📈 Sensor Sampling Rate](#-sensor-sampling-rate)
+  - [⚠️ Limitations](#️-limitations)
   - [🤝 Contributing](#-contributing)
   - [📄 License](#-license)
 
