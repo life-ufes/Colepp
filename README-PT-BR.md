@@ -223,6 +223,7 @@ git push origin minha-feature
       primaryClass={cs.SE},
       url={https://arxiv.org/abs/2510.15565}, 
 }
+```
 
 ## 📄 Licença
 Este projeto está licenciado sob a Licença MIT — consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
