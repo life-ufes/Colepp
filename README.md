@@ -14,6 +14,9 @@ The system consists of **two main modules**:
 
 The focus is to enable **structured and synchronized data collection**, making it easier to create datasets for research in health monitoring, human activity recognition (HAR), and heart rate estimation algorithm development.
 
+Access the paper for more info:
+- [Paper](https://arxiv.org/abs/2510.15565)
+
 ---
 
 ## 🗂️ Table of Contents
@@ -202,6 +205,20 @@ To contribute:
 5. Open a **Pull Request**.
 
 ---
+
+## 🎓 Citation 
+
+```
+@misc{dejesus2025,
+      title={Colepp: uma ferramenta multiplataforma para coleta de dados de dispositivos vestiveis}, 
+      author={Vinicius Moraes de Jesus and Andre Georghton Cardoso Pacheco},
+      year={2025},
+      eprint={2510.15565},
+      archivePrefix={arXiv},
+      primaryClass={cs.SE},
+      url={https://arxiv.org/abs/2510.15565}, 
+}
+```
 
 ## 📄 License
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
