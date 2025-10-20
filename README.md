@@ -14,8 +14,12 @@ The system consists of **two main modules**:
 
 The focus is to enable **structured and synchronized data collection**, making it easier to create datasets for research in health monitoring, human activity recognition (HAR), and heart rate estimation algorithm development.
 
-Access the paper for more info:
+Access the paper for more info (PT-BR only):
 - [Paper](https://arxiv.org/abs/2510.15565)
+
+
+Video tutorial (PT-BR only):
+- [Tutorial Colepp](https://drive.google.com/file/d/1TlWn2WMI4MvkFQ_k9JsjuzJQwiJQs4Qa/view)
 
 ---
 
