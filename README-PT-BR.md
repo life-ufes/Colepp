@@ -10,7 +10,11 @@ O sistema é composto por **dois módulos principais**:
 
 O foco é permitir **coleta estruturada e sincronizada**, facilitando a criação de datasets para pesquisas nas áreas de monitoramento de saúde, detecção de atividades humanas (HAR) e desenvolvimento de algoritmos de estimativa de frequência cardíaca.
 
-Foi feito um video de tutorial de uso da ferramenta: [Tutorial Colepp](https://drive.google.com/file/d/1TlWn2WMI4MvkFQ_k9JsjuzJQwiJQs4Qa/view)
+Foi feito um video de tutorial de uso da ferramenta: 
+- [Tutorial Colepp](https://drive.google.com/file/d/1TlWn2WMI4MvkFQ_k9JsjuzJQwiJQs4Qa/view)
+
+Acesse o artigo para mais informações:
+- [Artigo](https://arxiv.org/abs/2510.15565)
 
 ---
 
@@ -206,6 +210,19 @@ git push origin minha-feature
 5. Abra um **Pull Request**.
 
 ---
+
+## 🎓 Citação 
+
+```
+@misc{dejesus2025,
+      title={Colepp: uma ferramenta multiplataforma para coleta de dados de dispositivos vestiveis}, 
+      author={Vinicius Moraes de Jesus and Andre Georghton Cardoso Pacheco},
+      year={2025},
+      eprint={2510.15565},
+      archivePrefix={arXiv},
+      primaryClass={cs.SE},
+      url={https://arxiv.org/abs/2510.15565}, 
+}
 
 ## 📄 Licença
 Este projeto está licenciado sob a Licença MIT — consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
